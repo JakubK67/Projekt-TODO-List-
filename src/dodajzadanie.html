@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <nav>
+        <a href="">Logowanie</a>
+    </nav>
+    <main>
+        <form action="" method="post">
+            <h1>Dodaj zadanie</h1><br>
+            <label>Podaj nazwę zadania:</label><br>
+            <input type="text" name="nazwa"><br><br>
+            <div class="form-left">
+                <label>Podaj priorytet:</label><br>
+                    <input type="radio" name="priorytet" value=0>
+                    <label for="priorytet">Niski</label>
+                    <input type="radio" name="priorytet" value=1>
+                    <label for="priorytet">Normalny</label>
+                    <input type="radio" name="priorytet" value=2>
+                    <label for="priorytet">Wysoki</label><br><br>
+                    <label>Podaj termin wykonania:</label><br>
+                    <input type="date">
+                </div>
+            </div>
+            <div class="form-right">
+                <label>Podaj opis zadania:</label><br>
+                <textarea name="opis"></textarea><br><br>
+            </div>
+            <div class="przeslij">
+                <input  type="submit" value="Dodaj zadanie">
+            </div>
+        </form>
+    </main>
+</body>
+</html>
