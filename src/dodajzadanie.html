@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,26 +11,33 @@
         <a href="">Logowanie</a>
     </nav>
     <main>
-        <form action="" method="post">
+        <form action="dodajzadanie.php" method="post">
+
             <h1>Dodaj zadanie</h1><br>
-            <label>Podaj nazwę zadania:</label><br>
-            <input type="text" name="nazwa"><br><br>
+
+            <label for="nazwa">Podaj nazwę zadania:</label><br>
+            <input type="text" name="nazwa" id="nazwa" required><br><br>
+
             <div class="form-left">
                 <label>Podaj priorytet:</label><br>
-                    <input type="radio" name="priorytet" value=0>
-                    <label for="priorytet">Niski</label>
-                    <input type="radio" name="priorytet" value=1>
-                    <label for="priorytet">Normalny</label>
-                    <input type="radio" name="priorytet" value=2>
-                    <label for="priorytet">Wysoki</label><br><br>
-                    <label>Podaj termin wykonania:</label><br>
-                    <input type="date">
-                </div>
+                    <input type="radio" name="priorytet" id="niski" value="Niski" required>
+                    <label for="niski">Niski</label>
+
+                    <input type="radio" name="priorytet" id="normalny" value="Normalny" required>
+                    <label for="normalny">Normalny</label>
+
+                    <input type="radio" name="priorytet" id="wysoki" value="Wysoki" required>
+                    <label for="wysoki">Wysoki</label><br><br>
+
+                    <label for="termin">Podaj termin wykonania:</label><br>
+                    <input type="date" id="termin" name="termin" required>
             </div>
+
             <div class="form-right">
-                <label>Podaj opis zadania:</label><br>
-                <textarea name="opis"></textarea><br><br>
+                <label for="opis">Podaj opis zadania:</label><br>
+                <textarea name="opis" id="opis"></textarea><br><br>
             </div>
+
             <div class="przeslij">
                 <input  type="submit" value="Dodaj zadanie">
             </div>
