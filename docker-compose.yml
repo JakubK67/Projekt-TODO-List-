@@ -34,7 +34,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
     volumes:
       - ./keycloak:/opt/keycloak/data/import
-      - ./keycloak-themes:/opt/keycloak/themes #css
+      - ./keycloak-themes:/opt/keycloak/themes
     ports:
       - "8081:8080"
     depends_on:
@@ -43,11 +43,12 @@ services:
   backend:
     build: ./backend
     environment:
-      DB_URL: jdbc:postgresql://db:5432/${APP_DB_NAME}
+      DB_DSN: pgsql:host=db;port=5432;dbname=${APP_DB_NAME}
       DB_USER: ${APP_DB_USER}
       DB_PASSWORD: ${APP_DB_PASSWORD}
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: todo-app
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/todo-app
     ports:
       - "8080:8080"
     depends_on:
