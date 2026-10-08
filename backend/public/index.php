@@ -53,6 +53,7 @@ $pdo->exec("
     ) CHARACTER SET utf8mb4
 ");
 
+
 // Sprawdzanie tokenu Keycloak
 function authenticate(): object {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
