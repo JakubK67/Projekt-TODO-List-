@@ -60,98 +60,30 @@ export default function Home() {
 
   return (
     <>
-      <section className="card">
-        <h2>{editingId ? "Edytuj zadanie" : "Nowe zadanie"}</h2>
-        <form onSubmit={handleSubmit} className="form">
-          <input
-            placeholder="Nazwa zadania *"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-          />
-          <textarea
-            placeholder="Opis"
-            rows={3}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-          <div className="row">
-            <label>
-              Termin
-              <input
-                type="date"
-                value={form.dueDate}
-                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-              />
-            </label>
-            <label>
-              Priorytet
-              <select
-                value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value })}
-              >
-                {PRIORITIES.map((p) => (
-                  <option key={p}>{p}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="row">
-            <button type="submit" className="btn">
-              {editingId ? "Zapisz zmiany" : "Dodaj zadanie"}
-            </button>
-            {editingId && (
-              <button type="button" className="btn secondary" onClick={cancelEdit}>
-                Anuluj
-              </button>
-            )}
-          </div>
-        </form>
-      </section>
+            <div className="new-task">
+                <form action="" method="post">
+                    <h1>Nowe Zadanie</h1>
+                    <input type="text" name="nazwa" placeholder="Nazwa Zadania*" required></input>
+                    <textarea name="opis" placeholder="Opis"></textarea>
+                    <label htmlfor="priorytet">Priorytet:</label>
+                    <label htmlfor="niski">Niski</label>
+                    <input type="radio" id="niski" name="priorytet" value="0" defaultChecked></input>
+                    <label htmlfor="normalny">Normalny</label>
+                    <input type="radio" id="normalny" name="priorytet" value="1"></input>
+                    <label htmlfor="wysoki">Wysoki</label>
+                    <input type="radio" id="wysoki" name="priorytet" value="2"></input><br /><br />
+                    <label htmlfor="termin">Termin*</label>
+                    <input type="date" name="termin" id="termin" required></input><br></br><br></br>
+                    <button type="submit">Dodaj Zadanie</button>
+                    <p>* - Pola wymagane</p>
+                </form>
+            </div>
 
-      <section className="card">
-        <div className="list-head">
-          <h2>Zadania ({visible.length})</h2>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="wszystkie">Wszystkie</option>
-            {STATUSES.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="progress">
-          <div className="bar" style={{ width: `${percent}%` }} />
-        </div>
-        <p className="muted">Ukończono: {percent}% ({done} z {tasks.length})</p>
-
-        {visible.length === 0 && <p className="muted">Brak zadań.</p>}
-
-        <ul className="tasks">
-          {visible.map((t) => (
-            <li key={t.id} className={`task prio-${t.priority}`}>
-              <div className="task-main">
-                <strong>{t.name}</strong>
-                {t.description && <p>{t.description}</p>}
-                <small className="muted">
-                  Termin: {fmtDate(t.dueDate)} | Priorytet: {t.priority}
-                  <br />
-                  Dodano: {fmt(t.createdAt)} | Edycja: {fmt(t.updatedAt)}
-                </small>
-              </div>
-              <div className="task-actions">
-                <select value={t.status} onChange={(e) => changeStatus(t.id, e.target.value)}>
-                  {STATUSES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-                <button className="btn secondary" onClick={() => startEdit(t)}>Edytuj</button>
-                <button className="btn danger" onClick={() => remove(t.id)}>Usuń</button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+            <div className="tasks">
+                <p className="no-task-text">Tu pojawią się zadania projektu kiedy zostaną dodane!</p>
+            </div>
     </>
   );
 }
+
+//GIKO MA MAŁĄ PAŁKĘ
