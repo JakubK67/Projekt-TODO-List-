@@ -85,5 +85,3 @@ export default function Home() {
     </>
   );
 }
-
-//GIKO MA MAŁĄ PAŁKĘ

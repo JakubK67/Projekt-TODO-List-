@@ -6,6 +6,20 @@ import Users from "./pages/Users.jsx";
 import { useNavigate } from "react-router-dom";
 import "./App.css";
 
+import { useEffect } from "react";
+import keycloak from "./keycloak";
+
+
+useEffect(() => {
+  (async () => {
+    await keycloak.updateToken(30);
+    const res = await fetch(import.meta.env.VITE_API_URL + "/api/me", {
+      headers: { Authorization: `Bearer ${keycloak.token}` },
+    });
+    console.log("Użytkownik z bazy:", await res.json());
+  })();
+}, []);
+
 export default function App() {
   const username = keycloak.tokenParsed?.preferred_username;
   const isAdmin = keycloak.hasRealmRole("admin");
@@ -41,6 +55,6 @@ export default function App() {
       </main>
     </div>
   );
+  
 }
 
-//GIKO TO PEDAŁ
