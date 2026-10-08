@@ -39,6 +39,16 @@ $pdo->exec("
     ) CHARACTER SET utf8mb4
 ");
 
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS projects (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        user_id VARCHAR(64) NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(keycloak_id)
+    )
+");
+
 // Weryfikacja tokenu JWT
 function authenticate(): object {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
@@ -92,6 +102,23 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt->execute([':id' => $token->sub]);
 
     echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    exit;
+}
+
+if ($path === '/api/projects' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $token = authenticate();
+
+    $stmt = $pdo->prepare("
+        SELECT id, name, description
+        FROM projects
+        WHERE user_id = ?
+    ");
+
+    $stmt->execute([$token->sub]);
+
+    $projekty = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode($projekty);
     exit;
 }
 
