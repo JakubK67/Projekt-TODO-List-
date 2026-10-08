@@ -11,7 +11,6 @@ export default function App() {
   const isAdmin = keycloak.hasRealmRole("admin");
   const navigate = useNavigate();
 
-  // Po zalogowaniu zapisz/odśwież użytkownika w bazie aplikacji
   useEffect(() => {
     (async () => {
       try {

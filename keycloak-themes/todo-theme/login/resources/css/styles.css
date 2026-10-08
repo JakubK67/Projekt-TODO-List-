@@ -17,7 +17,6 @@ body {
   background-color: #4f46e5;
   border: none;
 }
-
 .login-pf body{
   background-image: none;
   background-color: rgb(255, 240, 207);
@@ -31,3 +30,10 @@ body {
 #kc-page-title{
   padding-left: 40px;
 }
+
+#kc-page-title{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
