@@ -4,10 +4,7 @@ COPY composer.json ./
 RUN composer install --no-dev --no-interaction --prefer-dist
 
 FROM php:8.3-cli
-RUN apt-get update \
-    && apt-get install -y libpq-dev \
-    && docker-php-ext-install pdo_pgsql \
-    && rm -rf /var/lib/apt/lists/*
+RUN docker-php-ext-install pdo_mysql
 WORKDIR /app
 COPY --from=vendor /app/vendor ./vendor
 COPY public ./public

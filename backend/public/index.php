@@ -20,7 +20,7 @@ function fail(int $code, string $msg): never {
     exit;
 }
 
-// Połączenie z bazą aplikacji
+// Połączenie z bazą aplikacji (MySQL)
 $pdo = new PDO(
     getenv('DB_DSN'),
     getenv('DB_USER'),
@@ -30,13 +30,13 @@ $pdo = new PDO(
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS users (
-        keycloak_id TEXT PRIMARY KEY,
-        username    TEXT NOT NULL,
-        email       TEXT,
-        role        TEXT NOT NULL DEFAULT 'user',
-        created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-        last_login  TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+        keycloak_id VARCHAR(64)  NOT NULL PRIMARY KEY,
+        username    VARCHAR(255) NOT NULL,
+        email       VARCHAR(255) NULL,
+        role        VARCHAR(20)  NOT NULL DEFAULT 'user',
+        created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        last_login  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) CHARACTER SET utf8mb4
 ");
 
 // Weryfikacja tokenu JWT
@@ -73,13 +73,12 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     // Zapis użytkownika przy pierwszym logowaniu, aktualizacja przy kolejnych
     $stmt = $pdo->prepare("
         INSERT INTO users (keycloak_id, username, email, role)
-        VALUES (:id, :username, :email, :role)
-        ON CONFLICT (keycloak_id) DO UPDATE SET
-            username   = EXCLUDED.username,
-            email      = EXCLUDED.email,
-            role       = EXCLUDED.role,
-            last_login = now()
-        RETURNING *
+        VALUES (:id, :username, :email, :role) AS new
+        ON DUPLICATE KEY UPDATE
+            username   = new.username,
+            email      = new.email,
+            role       = new.role,
+            last_login = CURRENT_TIMESTAMP
     ");
     $stmt->execute([
         ':id'       => $token->sub,
@@ -87,6 +86,10 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         ':email'    => $token->email ?? null,
         ':role'     => $role,
     ]);
+
+    // MySQL nie ma RETURNING, więc dane pobieramy osobnym zapytaniem
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE keycloak_id = :id");
+    $stmt->execute([':id' => $token->sub]);
 
     echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
     exit;
