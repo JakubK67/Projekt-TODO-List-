@@ -40,22 +40,21 @@ services:
     depends_on:
       - keycloak-db
 
-  # Odkomentuj, gdy backend będzie gotowy
-  # backend:
-  #   build: ./backend
-  #   environment:
-  #     DB_URL: jdbc:postgresql://db:5432/${APP_DB_NAME}
-  #     DB_USER: ${APP_DB_USER}
-  #     DB_PASSWORD: ${APP_DB_PASSWORD}
-  #     KEYCLOAK_URL: http://keycloak:8080
-  #     KEYCLOAK_REALM: todo-app
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     keycloak:
-  #       condition: service_started
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${APP_DB_NAME}
+      DB_USER: ${APP_DB_USER}
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: todo-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
 
   frontend:
     build:
