@@ -20,7 +20,7 @@ function fail(int $code, string $msg): never {
     exit;
 }
 
-// Połączenie z bazą aplikacji (MySQL)
+// Łączenie MySQL
 $pdo = new PDO(
     getenv('DB_DSN'),
     getenv('DB_USER'),
@@ -39,7 +39,7 @@ $pdo->exec("
     ) CHARACTER SET utf8mb4
 ");
 
-// Weryfikacja tokenu JWT
+
 function authenticate(): object {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (!preg_match('/^Bearer\s+(.+)$/i', $header, $m)) {
@@ -56,7 +56,7 @@ function authenticate(): object {
         fail(401, 'Nieprawidłowy token');
     }
 
-    // Issuer w tokenie to adres widziany z przeglądarki (localhost:8081)
+    #(localhost:8081)
     if (($token->iss ?? '') !== getenv('KEYCLOAK_ISSUER')) {
         fail(401, 'Nieprawidłowy issuer');
     }
@@ -70,7 +70,7 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $roles = $token->realm_access->roles ?? [];
     $role = in_array('admin', $roles, true) ? 'admin' : 'user';
 
-    // Zapis użytkownika przy pierwszym logowaniu, aktualizacja przy kolejnych
+
     $stmt = $pdo->prepare("
         INSERT INTO users (keycloak_id, username, email, role)
         VALUES (:id, :username, :email, :role) AS new
@@ -87,7 +87,6 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         ':role'     => $role,
     ]);
 
-    // MySQL nie ma RETURNING, więc dane pobieramy osobnym zapytaniem
     $stmt = $pdo->prepare("SELECT * FROM users WHERE keycloak_id = :id");
     $stmt->execute([':id' => $token->sub]);
 
