@@ -3,33 +3,30 @@ import keycloak from "./keycloak";
 import Home from "./pages/Home.jsx";
 import Projects from "./pages/Projects.jsx";
 import Users from "./pages/Users.jsx";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 
 export default function App() {
   const username = keycloak.tokenParsed?.preferred_username;
   const isAdmin = keycloak.hasRealmRole("admin");
+  const navigate = useNavigate();
 
   return (
     <div className="page">
-      <header className="topbar">
-        <h1>TODO App</h1>
         <nav className="nav">
-          <NavLink to="/" end>Zadania</NavLink>
-          <NavLink to="/projects">Projekty</NavLink>
+          <button className="nav-button" onClick={() => navigate("/")}>Zadania</button>
+          <button className="nav-button" onClick={() => navigate("/projects")}>Projekty</button>
           {isAdmin && <NavLink to="/users">Użytkownicy</NavLink>}
-        </nav>
-        <div className="user">
+        <button className="nav-button">
           <span>
             {username} ({isAdmin ? "administrator" : "użytkownik"})
           </span>
-          <button
-            className="btn secondary"
-            onClick={() => keycloak.logout({ redirectUri: window.location.origin })}
-          >
+
+        </button>
+          <button className="btn secondary" onClick={() => keycloak.logout({ redirectUri: window.location.origin })}>
             Wyloguj
           </button>
-        </div>
-      </header>
+        </nav>
 
       <main className="content">
         <Routes>
@@ -45,3 +42,5 @@ export default function App() {
     </div>
   );
 }
+
+//GIKO TO PEDAŁ
