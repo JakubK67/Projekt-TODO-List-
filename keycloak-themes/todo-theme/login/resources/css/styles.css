@@ -1,5 +1,6 @@
 body {
   background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  background-image: none;
 }
 .login-pf-page .card-pf {
   border-radius: 12px;
@@ -15,4 +16,18 @@ body {
 #kc-login {
   background-color: #4f46e5;
   border: none;
+}
+
+.login-pf body{
+  background-image: none;
+  background-color: rgb(255, 240, 207);
+}
+
+#kc-header-wrapper{
+  color: black;
+  font-weight: bold;
+}
+
+#kc-page-title{
+  padding-left: 40px;
 }
