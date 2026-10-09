@@ -28,16 +28,35 @@ $pdo = new PDO(
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
 );
 
+// Dodaje kolumnę do istniejącej tabeli, jeśli jej jeszcze nie ma
+function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void {
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*)
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
+    ");
+    $stmt->execute([$table, $column]);
+    if ((int) $stmt->fetchColumn() === 0) {
+        $pdo->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+    }
+}
+
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS users (
         keycloak_id VARCHAR(64)  NOT NULL PRIMARY KEY,
         username    VARCHAR(255) NOT NULL,
+        first_name  VARCHAR(100) NULL,
+        last_name   VARCHAR(100) NULL,
         email       VARCHAR(255) NULL,
         role        VARCHAR(20)  NOT NULL DEFAULT 'user',
         created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
         last_login  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
     ) CHARACTER SET utf8mb4
 ");
+
+// Migracja dla tabeli utworzonej wcześniej (bez imienia i nazwiska)
+ensureColumn($pdo, 'users', 'first_name', 'VARCHAR(100) NULL AFTER username');
+ensureColumn($pdo, 'users', 'last_name', 'VARCHAR(100) NULL AFTER first_name');
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS projects (
@@ -81,19 +100,23 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $role = in_array('admin', $roles, true) ? 'admin' : 'user';
 
     $stmt = $pdo->prepare("
-        INSERT INTO users (keycloak_id, username, email, role)
-        VALUES (:id, :username, :email, :role) AS new
+        INSERT INTO users (keycloak_id, username, first_name, last_name, email, role)
+        VALUES (:id, :username, :first_name, :last_name, :email, :role) AS new
         ON DUPLICATE KEY UPDATE
             username   = new.username,
+            first_name = new.first_name,
+            last_name  = new.last_name,
             email      = new.email,
             role       = new.role,
             last_login = CURRENT_TIMESTAMP
     ");
     $stmt->execute([
-        ':id'       => $token->sub,
-        ':username' => $token->preferred_username ?? '',
-        ':email'    => $token->email ?? null,
-        ':role'     => $role,
+        ':id'         => $token->sub,
+        ':username'   => $token->preferred_username ?? '',
+        ':first_name' => $token->given_name ?? null,
+        ':last_name'  => $token->family_name ?? null,
+        ':email'      => $token->email ?? null,
+        ':role'       => $role,
     ]);
 
 
