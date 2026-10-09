@@ -1,0 +1,43 @@
+{
+  "realm": "todo-app",
+  "displayName": "TODO App",
+  "enabled": true,
+  "registrationAllowed": true,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "registrationEmailAsUsername": false,
+  "verifyEmail": false,
+  "loginTheme": "todo-theme",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["pl", "en"],
+  "defaultLocale": "pl",
+  "roles": {
+    "realm": [
+      { "name": "user", "description": "Zwykły użytkownik" },
+      { "name": "admin", "description": "Administrator" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "todo-frontend",
+      "name": "TODO frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:3000/*",
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ]
+}
