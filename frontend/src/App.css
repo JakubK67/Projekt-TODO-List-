@@ -5,6 +5,7 @@
 
 body{
     margin: 0;
+
     max-width: 100%;
     background-color: rgb(255, 240, 207);
 }
@@ -21,6 +22,7 @@ nav{
         background: none;
         border: none;
         color: white;
+        padding: 0 3vw;
     }
     button:hover{
         background-color: rgba(255, 255, 255, 0.2);
@@ -52,7 +54,7 @@ main{
 
         input[type="date"]
         {
-            margin: 0 1vw;
+          margin: 0 1vw;
         }
 
         textarea{
@@ -65,9 +67,9 @@ main{
             color: gray;
         }
 
-        input[type="radio"]
-        {
-            margin-top: 1vh;
+
+        .radio-group{
+            display: flex;
         }
 
         button{
@@ -84,8 +86,8 @@ main{
         }
     }
 
-    .tasks{
-        .no-task-text{
+    .tasks, .projects{
+        .no-task-text, .no-projects-text{
             color: rgb(209, 170, 128);
         }
     }

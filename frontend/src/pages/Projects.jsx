@@ -23,15 +23,19 @@ export default function Projects({ keycloak }) {
   }, [keycloak?.token]);
 
   return (
-    <section className="card">
-      <h2>Projekty</h2>
+    <>
+      <div className="new-task">
+          <form>
+              <h1>Nowy Projekt</h1>
+              <input type="text" name="nazwa" placeholder="Nazwa Projektu*" required></input>
+              <button type="submit">Dodaj Projekt</button>
+              <p>* - Pola wymagane</p>
+          </form>
 
-      {projekty.map(projekt => (
-        <div key={projekt.id}>
-          <h3>{projekt.name}</h3>
-          <p className="muted">{projekt.description}</p>
-        </div>
-      ))}
-    </section>
+          <div className="projects">
+              <p className="no-projects-text">Tu pojawią się zadania projektu kiedy zostaną dodane!</p>
+          </div>
+      </div>
+    </>
   );
 }
