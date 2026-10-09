@@ -48,5 +48,27 @@
         "pkce.code.challenge.method": "S256"
       }
     }
+  ],
+  "users": [
+    {
+      "username": "user1",
+      "enabled": true,
+      "email": "user1@todo.local",
+      "emailVerified": true,
+      "firstName": "Jan",
+      "lastName": "Kowalski",
+      "credentials": [{ "type": "password", "value": "user123", "temporary": false }],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "admin1",
+      "enabled": true,
+      "email": "admin1@todo.local",
+      "emailVerified": true,
+      "firstName": "Anna",
+      "lastName": "Nowak",
+      "credentials": [{ "type": "password", "value": "admin123", "temporary": false }],
+      "realmRoles": ["admin", "user"]
+    }
   ]
 }
