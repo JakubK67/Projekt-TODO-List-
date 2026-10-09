@@ -14,13 +14,15 @@
   "supportedLocales": ["pl", "en"],
   "defaultLocale": "pl",
   "smtpServer": {
-    "host": "mailpit",
-    "port": "1025",
-    "from": "noreply@todo.local",
+    "host": "${SMTP_HOST}",
+    "port": "${SMTP_PORT}",
+    "from": "${SMTP_FROM}",
     "fromDisplayName": "TODO App",
-    "auth": "false",
+    "auth": "${SMTP_AUTH}",
     "ssl": "false",
-    "starttls": "false"
+    "starttls": "${SMTP_STARTTLS}",
+    "user": "${SMTP_USER}",
+    "password": "${SMTP_PASSWORD}"
   },
   "roles": {
     "realm": [
