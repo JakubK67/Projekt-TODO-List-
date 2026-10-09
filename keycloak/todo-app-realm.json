@@ -13,6 +13,15 @@
   "internationalizationEnabled": true,
   "supportedLocales": ["pl", "en"],
   "defaultLocale": "pl",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "noreply@todo.local",
+    "fromDisplayName": "TODO App",
+    "auth": "false",
+    "ssl": "false",
+    "starttls": "false"
+  },
   "roles": {
     "realm": [
       { "name": "user", "description": "Zwykły użytkownik" },

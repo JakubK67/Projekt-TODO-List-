@@ -63,6 +63,11 @@ services:
         condition: service_started
 
         
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+        
   phpmyadmin:
     image: phpmyadmin:latest
     environment:
