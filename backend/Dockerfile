@@ -4,7 +4,7 @@ COPY composer.json ./
 RUN composer install --no-dev --no-interaction --prefer-dist
 
 FROM php:8.3-cli
-RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install pdo_mysql mysqli
 WORKDIR /app
 COPY --from=vendor /app/vendor ./vendor
 COPY public ./public

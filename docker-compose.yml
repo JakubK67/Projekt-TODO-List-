@@ -68,6 +68,8 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_started
+    volumes:
+      - ./backend/public:/app/public
 
         
   mailpit:

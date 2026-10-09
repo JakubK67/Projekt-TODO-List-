@@ -1,23 +1,37 @@
 import axios from 'axios';
-import { use, useState } from "react";
+import { useState, useEffect } from "react";
 
-const STATUSES = ["do zrobienia", "realizowane", "wykonane"];
-const PRIORITIES = ["Niski", "Normalny", "Wysoki"];
-const EMPTY_FORM = { name: "", description: "", dueDate: "", priority: "Normalny" };
+const API_URL = 'http://localhost:8080';
 
 export default function Home() {
-
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [priority, setPrior] = useState('0');
   const [deadline, setDl] = useState('');
+  const [tasks, setTasks] = useState([]);
+
+  const loadTasks = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/showtasks.php`);
+      setTasks(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await axios.post('http://localhost:8080/tasks.php', {name, desc, priority, deadline})
-    console.log(res)
-
-  } 
+    try {
+      await axios.post(`${API_URL}/addtasks.php`, { name, desc, priority, deadline });
+      loadTasks();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <>
@@ -50,7 +64,19 @@ export default function Home() {
             </div>
 
             <div className="tasks">
+              {tasks.length === 0 ? (
                 <p className="no-task-text">Tu pojawią się zadania projektu kiedy zostaną dodane!</p>
+              ) : (
+                tasks.map((t) => (
+                  <div className="task" key={t.id}>
+                    <h3>{t.name}</h3>
+                    <p>{t.description}</p>
+                    <p>Priorytet: {t.priority}</p>
+                    <p>Status: {t.status}</p>
+                    <p>{t.deadline}</p>
+                  </div>
+                ))
+              )}
             </div>
     </>
   );
