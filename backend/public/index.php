@@ -20,7 +20,7 @@ function fail(int $code, string $msg): never {
     exit;
 }
 
-// Połączenie z bazą aplikacji (MySQL)
+#MYSQL
 $pdo = new PDO(
     getenv('DB_DSN'),
     getenv('DB_USER'),
@@ -39,7 +39,17 @@ $pdo->exec("
     ) CHARACTER SET utf8mb4
 ");
 
-// Weryfikacja tokenu JWT
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS projects (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        user_id VARCHAR(64) NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(keycloak_id)
+    )
+");
+
+
 function authenticate(): object {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (!preg_match('/^Bearer\s+(.+)$/i', $header, $m)) {
@@ -70,7 +80,6 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $roles = $token->realm_access->roles ?? [];
     $role = in_array('admin', $roles, true) ? 'admin' : 'user';
 
-    // Zapis użytkownika przy pierwszym logowaniu, aktualizacja przy kolejnych
     $stmt = $pdo->prepare("
         INSERT INTO users (keycloak_id, username, email, role)
         VALUES (:id, :username, :email, :role) AS new
@@ -87,11 +96,28 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         ':role'     => $role,
     ]);
 
-    // MySQL nie ma RETURNING, więc dane pobieramy osobnym zapytaniem
+
     $stmt = $pdo->prepare("SELECT * FROM users WHERE keycloak_id = :id");
     $stmt->execute([':id' => $token->sub]);
 
     echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    exit;
+}
+
+if ($path === '/api/projects' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $token = authenticate();
+
+    $stmt = $pdo->prepare("
+        SELECT id, name, description
+        FROM projects
+        WHERE user_id = ?
+    ");
+
+    $stmt->execute([$token->sub]);
+
+    $projekty = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode($projekty);
     exit;
 }
 

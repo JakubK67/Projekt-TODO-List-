@@ -1,4 +1,27 @@
-export default function Projects() {
+import { useState, useEffect } from "react";
+
+export default function Projects({ keycloak }) {
+  const [projekty, setProjekty] = useState([]);
+
+  useEffect(() => {
+    if (!keycloak?.token) return;
+
+    fetch("http://localhost:8080/api/projects", {
+      headers: {
+        Authorization: "Bearer " + keycloak.token
+      }
+    })
+      .then(odpowiedz => {
+        if (!odpowiedz.ok) {
+          throw new Error("Nie udało się pobrać projektówji");
+        }
+        return odpowiedz.json();
+      })
+      .then(dane => setProjekty(dane))
+      .catch(blad => console.log(blad));
+
+  }, [keycloak?.token]);
+
   return (
     <>
       <div className="new-task">
