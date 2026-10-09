@@ -36,7 +36,7 @@ export default function App() {
           Projekty
         </button>
         {isAdmin && <NavLink to="/users">Użytkownicy</NavLink>}
-        <button className="nav-button">
+        <button className="nav-button" onClick={() => navigate("/usermenu")}>
           <span>
             {username} ({isAdmin ? "administrator" : "użytkownik"})
           </span>
