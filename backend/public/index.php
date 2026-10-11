@@ -20,7 +20,6 @@ function fail(int $code, string $msg): never {
     exit;
 }
 
-#MYSQL
 $pdo = new PDO(
     getenv('DB_DSN'),
     getenv('DB_USER'),
@@ -28,7 +27,6 @@ $pdo = new PDO(
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
 );
 
-// Dodaje kolumnę do istniejącej tabeli, jeśli jej jeszcze nie ma
 function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void {
     $stmt = $pdo->prepare("
         SELECT COUNT(*)
@@ -54,7 +52,6 @@ $pdo->exec("
     ) CHARACTER SET utf8mb4
 ");
 
-// Migracja dla tabeli utworzonej wcześniej (bez imienia i nazwiska)
 ensureColumn($pdo, 'users', 'first_name', 'VARCHAR(100) NULL AFTER username');
 ensureColumn($pdo, 'users', 'last_name', 'VARCHAR(100) NULL AFTER first_name');
 
@@ -85,7 +82,6 @@ function authenticate(): object {
         fail(401, 'Nieprawidłowy token');
     }
 
-    // Issuer w tokenie to adres widziany z przeglądarki (localhost:8081)
     if (($token->iss ?? '') !== getenv('KEYCLOAK_ISSUER')) {
         fail(401, 'Nieprawidłowy issuer');
     }
