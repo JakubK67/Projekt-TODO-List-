@@ -35,17 +35,19 @@ export default function App() {
           Projekty
         </button>
         {isAdmin && <NavLink to="/users">Użytkownicy</NavLink>}
-        <button className="nav-button" onClick={() => navigate("/usermenu")}>
-          <span>
-            {username} ({isAdmin ? "administrator" : "użytkownik"})
-          </span>
-        </button>
-        <button
-          className="btn secondary"
-          onClick={() => keycloak.logout({ redirectUri: window.location.origin })}
-        >
-          Wyloguj
-        </button>
+        <div className="user-menu">
+          <button className="nav-button" onClick={() => navigate("/usermenu")}>
+            <span>
+              {username} ({isAdmin ? "administrator" : "użytkownik"})
+            </span>
+          </button>
+          <button
+            className="btn secondary user-menu-logout nav-button"
+            onClick={() => keycloak.logout({ redirectUri: window.location.origin })}
+          >
+            Wyloguj
+          </button>
+        </div>
       </nav>
 
       <main className="content">

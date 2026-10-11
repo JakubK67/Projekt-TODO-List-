@@ -31,11 +31,10 @@ export default function Projects({ keycloak }) {
               <button type="submit">Dodaj Projekt</button>
               <p>* - Pola wymagane</p>
           </form>
-
-          <div className="projects">
-              <p className="no-projects-text">Tu pojawią się zadania projektu kiedy zostaną dodane!</p>
-          </div>
       </div>
+        <div className="projects">
+            <p className="no-projects-text">Tu pojawią się zadania projektu kiedy zostaną dodane!</p>
+        </div>
     </>
   );
 }
