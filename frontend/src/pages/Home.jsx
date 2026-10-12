@@ -86,6 +86,8 @@ export default function Home() {
   }
 };
 
+
+
   return (
     <>
             <div className="new-task">
@@ -102,10 +104,6 @@ export default function Home() {
                       </div>
                     ))}
                     <br />
-
-                    <label htmlFor="termin">Termin*</label>
-                    <input type="date" name="termin" id="termin" required onChange={(e) => setDl(e.target.value)} /><br /><br />
-
                     <label>Status:</label><br />
                     {STATUSES.map((s, i) => (
                       <div className="radio-group" key={s}>
@@ -115,6 +113,8 @@ export default function Home() {
                       </div>
                     ))}
                     <br />
+                    <label htmlFor="termin">Termin*</label>
+                    <input type="date" name="termin" id="termin" required onChange={(e) => setDl(e.target.value)} /><br /><br />
                     <button type="submit">Dodaj Zadanie</button>
                     <p>* - Pola wymagane</p>
                 </form>
@@ -122,7 +122,7 @@ export default function Home() {
 
             <div className="tasks">
               {tasks.map((t) => (
-                <div className="task" key={t.id}>
+                <div className={`task priority-${t.priority.toLowerCase()}`} key={t.id}>
                   {editingId === t.id ? (
                     <>
                       <form onSubmit={(e) => saveEdit(e, t.id)}>

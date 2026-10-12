@@ -140,7 +140,6 @@ main{
         }
         .task{
             border-radius: 25px;
-            background-color: rgb(255,250,240);
             padding: 5%;
             margin: 0 0 5% 0;
             .termin{
@@ -208,6 +207,21 @@ main{
         }
         button:hover{
             background-color: rgb(23, 41, 41);
+        }
+
+        .task.priority-niski {
+        background-color: rgb(195, 255, 105)
+        }
+
+        .task.priority-normalny {
+        background-color: rgb(255, 255, 116)
+        }
+
+        .task.priority-wysoki {
+        background-color: #ff5757;
+        p{
+            color: white;
+        }
         }
     }
 }
