@@ -1,4 +1,5 @@
 import axios from 'axios';
+import keycloak from '../keycloak';
 import { useState, useEffect } from "react";
 
 const API_URL = 'http://localhost:8080';
@@ -12,6 +13,8 @@ export default function Home() {
   const [deadline, setDl] = useState('');
   const [tasks, setTasks] = useState([]);
   const [status, setStatus] = useState('0');
+  const [submitError, setSubmitError] = useState('');
+  const [tasksError, setTasksError] = useState('');
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -55,10 +58,15 @@ export default function Home() {
   };
 
   const loadTasks = async () => {
+    setTasksError('');
     try {
-      const res = await axios.get(`${API_URL}/showtasks.php`);
+      await keycloak.updateToken(30);
+      const res = await axios.get(`${API_URL}/showtasks.php`, {
+        headers: { Authorization: `Bearer ${keycloak.token}` },
+      });
       setTasks(res.data);
     } catch (err) {
+      setTasksError(err.response?.data?.error || 'Nie udało się pobrać zadań. Sprawdź połączenie z backendem.');
       console.error(err);
     }
   };
@@ -69,10 +77,17 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     try {
-      await axios.post(`${API_URL}/addtasks.php`, { name, desc, priority, deadline, status });
+      await keycloak.updateToken(30);
+      await axios.post(
+        `${API_URL}/addtasks.php`,
+        { name, desc, priority, deadline, status },
+        { headers: { Authorization: `Bearer ${keycloak.token}` } },
+      );
       loadTasks();
     } catch (err) {
+      setSubmitError(err.response?.data?.error || 'Nie udało się dodać zadania. Sprawdź połączenie z backendem.');
       console.error(err);
     }
   };
@@ -116,11 +131,13 @@ export default function Home() {
                     <label htmlFor="termin">Termin*</label>
                     <input type="date" name="termin" id="termin" required onChange={(e) => setDl(e.target.value)} /><br /><br />
                     <button type="submit">Dodaj Zadanie</button>
+                    {submitError && <p role="alert">{submitError}</p>}
                     <p>* - Pola wymagane</p>
                 </form>
             </div>
 
             <div className="tasks">
+              {tasksError && <p role="alert">{tasksError}</p>}
               {tasks.map((t) => (
                 <div className={`task priority-${t.priority.toLowerCase()}`} key={t.id}>
                   {editingId === t.id ? (
