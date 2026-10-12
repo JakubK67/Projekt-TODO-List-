@@ -41,6 +41,7 @@ function ensureColumn(PDO $pdo, string $table, string $column, string $definitio
 
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS users (
+        id          INT NOT NULL AUTO_INCREMENT UNIQUE,
         keycloak_id VARCHAR(64)  NOT NULL PRIMARY KEY,
         username    VARCHAR(255) NOT NULL,
         first_name  VARCHAR(100) NULL,
@@ -49,9 +50,10 @@ $pdo->exec("
         role        VARCHAR(20)  NOT NULL DEFAULT 'user',
         created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
         last_login  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ) CHARACTER SET utf8mb4
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ");
 
+ensureColumn($pdo, 'users', 'id', 'INT NOT NULL AUTO_INCREMENT UNIQUE FIRST');
 ensureColumn($pdo, 'users', 'first_name', 'VARCHAR(100) NULL AFTER username');
 ensureColumn($pdo, 'users', 'last_name', 'VARCHAR(100) NULL AFTER first_name');
 
@@ -61,8 +63,24 @@ $pdo->exec("
         name VARCHAR(100) NOT NULL,
         description TEXT,
         user_id VARCHAR(64) NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(keycloak_id)
-    )
+        KEY user_id (user_id),
+        CONSTRAINT projects_ibfk_1 FOREIGN KEY (user_id) REFERENCES users(keycloak_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+");
+
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        description TEXT NULL,
+        deadline DATE DEFAULT NULL,
+        created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        priority ENUM('Niski', 'Normalny', 'Wysoki') NOT NULL DEFAULT 'Normalny',
+        status ENUM('Do zrobienia', 'Realizowane', 'Wykonane') NOT NULL DEFAULT 'Do zrobienia',
+        user_id INT NOT NULL DEFAULT 1,
+        project_id INT DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_polish_ci
 ");
 
 
@@ -120,6 +138,57 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt->execute([':id' => $token->sub]);
 
     echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+    exit;
+}
+
+if ($path === '/api/projects' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = authenticate();
+    $userId = $token->sub ?? '';
+    if (!is_string($userId) || $userId === '') {
+        fail(401, 'Brak identyfikatora użytkownika w tokenie');
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($data) || !is_string($data['name'] ?? null)) {
+        fail(400, 'Podaj nazwę projektu');
+    }
+    $name = trim($data['name']);
+    $description = $data['description'] ?? '';
+    if ($name === '' || preg_match_all('/./us', $name) > 100) {
+        fail(400, 'Nazwa projektu musi mieć od 1 do 100 znaków');
+    }
+    if (!is_string($description) || strlen($description) > 65535) {
+        fail(400, 'Nieprawidłowy lub zbyt długi opis projektu');
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT id FROM users WHERE keycloak_id = ?');
+        $stmt->execute([$userId]);
+        if ($stmt->fetchColumn() === false) {
+            fail(404, 'Nie znaleziono użytkownika w bazie');
+        }
+        $stmt = $pdo->prepare('INSERT INTO projects (name, description, user_id) VALUES (?, ?, ?)');
+        $stmt->execute([$name, $description, $userId]);
+        http_response_code(201);
+        echo json_encode([
+            'id' => (int) $pdo->lastInsertId(),
+            'name' => $name,
+            'description' => $description,
+        ], JSON_UNESCAPED_UNICODE);
+    } catch (PDOException $e) {
+        error_log('POST /api/projects: ' . $e->getMessage());
+        $mysqlCode = (int) ($e->errorInfo[1] ?? 0);
+        $messages = [
+            1054 => 'Brakuje kolumny w tabeli projects lub users.',
+            1146 => 'Brakuje tabeli projects lub users.',
+            1364 => 'Tabela projects wymaga dodatkowej wartości bez wartości domyślnej.',
+            1366 => 'Typ lub kodowanie danych nie pasuje do tabeli projects.',
+            1406 => 'Nazwa lub opis projektu jest za długi.',
+            1452 => 'Użytkownik nie spełnia powiązania klucza obcego w projects.',
+            1062 => 'Projekt powoduje konflikt z unikalnym wpisem.',
+        ];
+        fail(500, ($messages[$mysqlCode] ?? 'Nie udało się dodać projektu.') . ' Kod MySQL: ' . $mysqlCode . '.');
+    }
     exit;
 }
 

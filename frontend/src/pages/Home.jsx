@@ -15,6 +15,9 @@ export default function Home() {
   const [status, setStatus] = useState('0');
   const [submitError, setSubmitError] = useState('');
   const [tasksError, setTasksError] = useState('');
+  const [projects, setProjects] = useState([]);
+  const [projectId, setProjectId] = useState('');
+  const [projectsError, setProjectsError] = useState('');
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -73,6 +76,19 @@ export default function Home() {
 
   useEffect(() => {
     loadTasks();
+    let active = true;
+    (async () => {
+      try {
+        await keycloak.updateToken(30);
+        const response = await axios.get(`${API_URL}/api/projects`, {
+          headers: { Authorization: `Bearer ${keycloak.token}` },
+        });
+        if (active) setProjects(response.data);
+      } catch (err) {
+        if (active) setProjectsError(err.response?.data?.error || 'Nie udało się pobrać projektów. Możesz dodać zadanie bez projektu.');
+      }
+    })();
+    return () => { active = false; };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -82,7 +98,7 @@ export default function Home() {
       await keycloak.updateToken(30);
       await axios.post(
         `${API_URL}/addtasks.php`,
-        { name, desc, priority, deadline, status },
+        { name, desc, priority, deadline, status, project_id: projectId === '' ? null : Number(projectId) },
         { headers: { Authorization: `Bearer ${keycloak.token}` } },
       );
       loadTasks();
@@ -110,6 +126,12 @@ export default function Home() {
                     <h1>Nowe Zadanie</h1>
                     <input type="text" name="nazwa" placeholder="Nazwa Zadania*" required onChange={(e) => setName(e.target.value)}></input>
                     <textarea name="opis" placeholder="Opis" onChange={(e) => setDesc(e.target.value)}></textarea>
+                    <label htmlFor="add-project">Projekt:</label><br />
+                    <select id="add-project" name="project_id" value={projectId} onChange={event => setProjectId(event.target.value)}>
+                      <option value="">Brak</option>
+                      {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
+                    </select><br /><br />
+                    {projectsError && <p role="alert">{projectsError}</p>}
                     <label>Priorytet:</label><br />
                     {PRIORITIES.map((p, i) => (
                       <div className="radio-group" key={p}>

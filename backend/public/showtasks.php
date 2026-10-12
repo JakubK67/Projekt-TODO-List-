@@ -1,8 +1,14 @@
 <?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\JWK;
+
 header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json; charset=utf-8");
+header('Cache-Control: no-store');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -15,33 +21,60 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-$link = mysqli_connect('db', 'todo', 'admin', 'todo');
-
-if (!$link) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
+function fail(int $code, string $message): never {
+    http_response_code($code);
+    echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-mysqli_set_charset($link, 'utf8mb4');
-
-$result = mysqli_query(
-    $link,
-    "SELECT id, name, description, deadline, priority, status, created, updated
-     FROM tasks
-     ORDER BY deadline ASC"
-);
-
-if (!$result) {
-    http_response_code(500);
-    echo json_encode(['error' => mysqli_error($link)]);
-    mysqli_close($link);
-    exit;
+$header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+if (!preg_match('/^Bearer\s+(.+)$/i', $header, $matches)) {
+    fail(401, 'Brak tokenu');
 }
 
-$tasks = mysqli_fetch_all($result, MYSQLI_ASSOC);
+$realmUrl = rtrim(getenv('KEYCLOAK_URL'), '/')
+    . '/realms/' . getenv('KEYCLOAK_REALM');
+try {
+    $jwks = json_decode(file_get_contents($realmUrl . '/protocol/openid-connect/certs'), true);
+    JWT::$leeway = 30;
+    $token = JWT::decode($matches[1], JWK::parseKeySet($jwks, 'RS256'));
+} catch (Throwable $e) {
+    fail(401, 'Nieprawidłowy token');
+}
 
-echo json_encode($tasks, JSON_UNESCAPED_UNICODE);
+if (($token->iss ?? '') !== getenv('KEYCLOAK_ISSUER')) {
+    fail(401, 'Nieprawidłowy issuer');
+}
 
-mysqli_free_result($result);
-mysqli_close($link);
+$keycloak_id = $token->sub ?? '';
+if (!is_string($keycloak_id) || $keycloak_id === '') {
+    fail(401, 'Brak identyfikatora użytkownika w tokenie');
+}
+
+try {
+    $pdo = new PDO(
+        getenv('DB_DSN'),
+        getenv('DB_USER'),
+        getenv('DB_PASSWORD'),
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE keycloak_id = ?');
+    $stmt->execute([$keycloak_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$user) {
+        fail(404, 'Nie znaleziono użytkownika w bazie');
+    }
+    $user_id = (int) $user['id'];
+    $stmt = $pdo->prepare("
+    SELECT id, name, description, deadline, priority, status, created, updated
+    FROM tasks
+    WHERE user_id = ?
+    ORDER BY deadline ASC
+");
+
+    $stmt->execute([$user_id]);
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC), JSON_UNESCAPED_UNICODE);
+} catch (PDOException $e) {
+    error_log('showtasks.php: ' . $e->getMessage());
+    fail(500, 'Nie udało się pobrać zadań');
+}

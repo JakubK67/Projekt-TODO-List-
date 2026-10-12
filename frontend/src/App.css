@@ -84,7 +84,7 @@ main{
         background-color: rgb(255,250,240);
         padding: 5%;
         margin: 0 0 5% 0;
-        input, textarea{
+        input, textarea, select{
             border-radius: 25px;
             resize: none;
             font-weight: bold;
@@ -136,6 +136,14 @@ main{
     }
 
     .tasks, .projects{
+        .project{
+            border-radius: 25px;
+            background-color: rgb(255,250,240);
+            padding: 5%;
+            margin: 0 0 5% 0;
+            overflow-wrap: anywhere;
+            p{ white-space: pre-wrap; }
+        }
         .no-task-text, .no-projects-text{
             color: rgb(209, 170, 128);
         }
