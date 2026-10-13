@@ -66,13 +66,15 @@ try {
     }
     $user_id = (int) $user['id'];
     $stmt = $pdo->prepare("
-    SELECT id, name, description, deadline, priority, status, created, updated
-    FROM tasks
-    WHERE user_id = ?
-    ORDER BY deadline ASC
+    SELECT t.id, t.name, t.description, t.deadline, t.priority, t.status,
+           t.created, t.updated, t.project_id, p.name AS project_name
+    FROM tasks t
+    LEFT JOIN projects p ON p.id = t.project_id AND p.user_id = ?
+    WHERE t.user_id = ?
+    ORDER BY t.deadline ASC
 ");
 
-    $stmt->execute([$user_id]);
+    $stmt->execute([$keycloak_id, $user_id]);
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC), JSON_UNESCAPED_UNICODE);
 } catch (PDOException $e) {
     error_log('showtasks.php: ' . $e->getMessage());

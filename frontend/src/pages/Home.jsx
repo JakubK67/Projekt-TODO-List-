@@ -202,11 +202,12 @@ export default function Home() {
                     </>
                   ) : (
                     <>
+                      <h2>Projekt: {t.project_name ?? 'Brak'}</h2>
                       <h3>{t.name}</h3>
-                      <p>{t.description}</p>
-                      <p>Priorytet: {t.priority}</p>
                       <p>Termin: {t.deadline}</p>
+                      <p>Priorytet: {t.priority}</p>
                       <p>Status: {t.status}</p>
+                      <p>Opis: {t.description || 'Brak opisu'}</p>
                       <button type="button" onClick={() => startEdit(t)}>Edytuj</button>
                       <button type="button" onClick={() => handleDelete(t.id)}>Usuń</button>
                     </>

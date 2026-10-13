@@ -24,7 +24,6 @@ if ($id <= 0) {
     exit;
 }
 
-// allowed values for the ENUM columns
 $priorities = ['Niski', 'Normalny', 'Wysoki'];
 $statuses   = ['Do zrobienia', 'Realizowane', 'Wykonane'];
 

@@ -24,14 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     fail(405, 'Method not allowed');
 }
 
-// 1. Pobranie tokenu z nagłówka Authorization
 $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 
 if (!preg_match('/^Bearer\s+(.+)$/i', $header, $matches)) {
     fail(401, 'Brak tokenu');
 }
 
-// 2. Weryfikacja tokenu Keycloak
 $realmUrl = rtrim(getenv('KEYCLOAK_URL'), '/')
     . '/realms/' . getenv('KEYCLOAK_REALM');
 
@@ -60,7 +58,6 @@ if (!is_string($keycloak_id) || $keycloak_id === '') {
     fail(401, 'Brak identyfikatora użytkownika w tokenie');
 }
 
-// 3. Połączenie z MySQL
 try {
     $pdo = new PDO(
         getenv('DB_DSN'),
@@ -72,7 +69,6 @@ try {
     fail(500, 'Brak połączenia z bazą');
 }
 
-// 4. Powiązanie identyfikatora Keycloak z numerycznym users.id
 $stmt = $pdo->prepare('SELECT id FROM users WHERE keycloak_id = ?');
 $stmt->execute([$keycloak_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -83,7 +79,6 @@ if (!$user) {
 
 $user_id = (int) $user['id'];
 
-// 5. Pobranie danych zadania
 $data = json_decode(file_get_contents("php://input"));
 
 if (!is_object($data)) {
@@ -118,7 +113,6 @@ if ($project_id !== null) {
     $project_id = (int) $project_id;
 }
 
-// 6. Dodanie zadania do MySQL
 try {
     if ($project_id !== null) {
         $stmt = $pdo->prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?');
