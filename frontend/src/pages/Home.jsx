@@ -75,6 +75,7 @@ export default function Home() {
   };
 
   useEffect(() => {
+    document.title = 'Zadania';
     loadTasks();
     let active = true;
     (async () => {

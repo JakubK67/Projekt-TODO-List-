@@ -25,6 +25,7 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = 'Projekty';
     let active = true;
     (async () => {
       try {

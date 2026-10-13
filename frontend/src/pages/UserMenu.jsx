@@ -7,6 +7,7 @@ export default function UserMenu() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    document.title = 'Panel uzytkownika';
     let active = true;
     (async () => {
       try {
