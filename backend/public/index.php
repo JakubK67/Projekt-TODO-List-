@@ -84,6 +84,23 @@ $pdo->exec("
 ");
 
 
+function kcRequest(string $url, string $method, ?array $body = null, ?string $token = null): array {
+    $headers = $token ? "Authorization: Bearer $token\r\nContent-Type: application/json\r\n" : "Content-Type: application/x-www-form-urlencoded\r\n";
+    $content = $body === null ? '' : ($token ? json_encode($body) : http_build_query($body));
+    $ctx = stream_context_create(['http' => ['method' => $method, 'header' => $headers, 'content' => $content, 'ignore_errors' => true, 'timeout' => 10]]);
+    $response = file_get_contents($url, false, $ctx);
+    $status = (int) preg_replace('/^HTTP\/\S+\s+(\d+).*$/', '$1', $http_response_header[0] ?? 'HTTP/1.1 500');
+    if ($response === false || $status < 200 || $status >= 300) {
+        fail($status === 400 || $status === 401 ? 400 : 502, $status === 400 || $status === 401 ? 'Nieprawidłowe hasło lub dane.' : 'Nie udało się zapisać zmian konta.');
+    }
+    return json_decode($response, true) ?? [];
+}
+
+function kcAdminToken(): string {
+    $url = rtrim(getenv('KEYCLOAK_URL'), '/') . '/realms/master/protocol/openid-connect/token';
+    $data = kcRequest($url, 'POST', ['client_id' => 'admin-cli', 'grant_type' => 'password', 'username' => getenv('KEYCLOAK_ADMIN_USERNAME'), 'password' => getenv('KEYCLOAK_ADMIN_PASSWORD')]);
+    return $data['access_token'] ?? fail(502, 'Brak dostępu do usługi konta.');
+}
 function authenticate(): object {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (!preg_match('/^Bearer\s+(.+)$/i', $header, $m)) {
@@ -97,11 +114,11 @@ function authenticate(): object {
         JWT::$leeway = 30;
         $token = JWT::decode($m[1], JWK::parseKeySet($jwks, 'RS256'));
     } catch (Throwable $e) {
-        fail(401, 'Nieprawidłowy token');
+        fail(401, 'NieprawidĹ‚owy token');
     }
 
     if (($token->iss ?? '') !== getenv('KEYCLOAK_ISSUER')) {
-        fail(401, 'Nieprawidłowy issuer');
+        fail(401, 'NieprawidĹ‚owy issuer');
     }
     return $token;
 }
@@ -117,11 +134,6 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         INSERT INTO users (keycloak_id, username, first_name, last_name, email, role)
         VALUES (:id, :username, :first_name, :last_name, :email, :role) AS new
         ON DUPLICATE KEY UPDATE
-            username   = new.username,
-            first_name = new.first_name,
-            last_name  = new.last_name,
-            email      = new.email,
-            role       = new.role,
             last_login = CURRENT_TIMESTAMP
     ");
     $stmt->execute([
@@ -141,6 +153,43 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
+if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $token = authenticate();
+    $body = json_decode(file_get_contents('php://input'), true) ?? [];
+    $username = trim((string) ($body['username'] ?? ''));
+    $email = trim((string) ($body['email'] ?? ''));
+    $firstName = trim((string) ($body['first_name'] ?? ''));
+    $lastName = trim((string) ($body['last_name'] ?? ''));
+    if ($username === '' || strlen($username) > 255 || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($firstName) > 100 || strlen($lastName) > 100) fail(422, 'Sprawdź poprawność danych.');
+    $realm = rawurlencode(getenv('KEYCLOAK_REALM'));
+    $userPath = '/admin/realms/' . $realm . '/users/' . rawurlencode($token->sub);
+    $adminToken = kcAdminToken();
+    $user = kcRequest(rtrim(getenv('KEYCLOAK_URL'), '/') . $userPath, 'GET', null, $adminToken);
+    $user['username'] = $username;
+    $user['email'] = $email;
+    $user['firstName'] = $firstName;
+    $user['lastName'] = $lastName;
+    kcRequest(rtrim(getenv('KEYCLOAK_URL'), '/') . $userPath, 'PUT', $user, $adminToken);
+    $stmt = $pdo->prepare('UPDATE users SET username = ?, first_name = ?, last_name = ?, email = ? WHERE keycloak_id = ?');
+    $stmt->execute([$username, $firstName, $lastName, $email, $token->sub]);
+    echo json_encode(['username' => $username, 'first_name' => $firstName, 'last_name' => $lastName, 'email' => $email]);
+    exit;
+}
+
+if ($path === '/api/me/password' && $_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $token = authenticate();
+    $body = json_decode(file_get_contents('php://input'), true) ?? [];
+    $current = (string) ($body['current'] ?? '');
+    $next = (string) ($body['next'] ?? '');
+    if ($current === '' || $next === '' || $next !== ($body['confirm'] ?? null)) fail(422, 'Sprawdź obecne hasło oraz zgodność nowych haseł.');
+    $base = rtrim(getenv('KEYCLOAK_URL'), '/');
+    $realm = rawurlencode(getenv('KEYCLOAK_REALM'));
+    kcRequest($base . '/realms/' . $realm . '/protocol/openid-connect/token', 'POST', ['client_id' => 'admin-cli', 'grant_type' => 'password', 'username' => $token->preferred_username ?? '', 'password' => $current]);
+    $adminToken = kcAdminToken();
+    kcRequest($base . '/admin/realms/' . $realm . '/users/' . rawurlencode($token->sub) . '/reset-password', 'PUT', ['type' => 'password', 'value' => $next, 'temporary' => false], $adminToken);
+    echo json_encode(['message' => 'Hasło zostało zmienione.']);
+    exit;
+}
 if ($path === '/api/projects' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $token = authenticate();
 
@@ -159,3 +208,5 @@ if ($path === '/api/projects' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 fail(404, 'Nie znaleziono');
+
+

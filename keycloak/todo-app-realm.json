@@ -3,6 +3,7 @@
   "displayName": "TODO App",
   "enabled": true,
   "registrationAllowed": true,
+  "editUsernameAllowed": true,
   "resetPasswordAllowed": true,
   "rememberMe": true,
   "loginWithEmailAllowed": true,
