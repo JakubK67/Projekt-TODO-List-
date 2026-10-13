@@ -49,6 +49,7 @@ export default function Projects() {
   const [tasksError, setTasksError] = useState('');
 
   useEffect(() => {
+    document.title = 'Projekty';
     let active = true;
     (async () => {
       try {

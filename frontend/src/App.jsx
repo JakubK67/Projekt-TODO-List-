@@ -4,6 +4,7 @@ import keycloak from "./keycloak";
 import Home from "./pages/Home.jsx";
 import Projects from "./pages/Projects.jsx";
 import Users from "./pages/Users.jsx";
+import UserMenu from "./pages/UserMenu.jsx";
 import "./App.css";
 
 export default function App() {
@@ -54,6 +55,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/usermenu" element={<UserMenu />} />
           <Route
             path="/users"
             element={isAdmin ? <Users /> : <Navigate to="/" replace />}
