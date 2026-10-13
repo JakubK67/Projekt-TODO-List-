@@ -77,6 +77,22 @@ nav{
     }
 }
 
+.user-profile dt{
+    font-weight: bold;
+    margin-top: 16px;
+}
+
+.user-profile dd{
+    margin: 6px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.user-profile-actions{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
 main{
     padding: 4vh 20%;
     .new-task{
