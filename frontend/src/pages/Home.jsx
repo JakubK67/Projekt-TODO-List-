@@ -202,7 +202,7 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <h2>Projekt: {t.project_name ?? 'Brak'}</h2>
+                      {t.project_name && <h2>{t.project_name}</h2>}
                       <h3>{t.name}</h3>
                       <p>Termin: {t.deadline}</p>
                       <p>Priorytet: {t.priority}</p>

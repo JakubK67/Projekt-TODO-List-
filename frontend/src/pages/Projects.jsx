@@ -50,7 +50,7 @@ export default function Projects() {
     setSaving(true);
     try {
       await keycloak.updateToken(30);
-      const response = await fetch(`${API_URL}/api/projects`, {
+      const response = await fetch(`${API_URL}/addprojects.php`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${keycloak.token}`,

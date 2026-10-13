@@ -141,57 +141,6 @@ if ($path === '/api/me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-if ($path === '/api/projects' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $token = authenticate();
-    $userId = $token->sub ?? '';
-    if (!is_string($userId) || $userId === '') {
-        fail(401, 'Brak identyfikatora użytkownika w tokenie');
-    }
-
-    $data = json_decode(file_get_contents('php://input'), true);
-    if (!is_array($data) || !is_string($data['name'] ?? null)) {
-        fail(400, 'Podaj nazwę projektu');
-    }
-    $name = trim($data['name']);
-    $description = $data['description'] ?? '';
-    if ($name === '' || preg_match_all('/./us', $name) > 100) {
-        fail(400, 'Nazwa projektu musi mieć od 1 do 100 znaków');
-    }
-    if (!is_string($description) || strlen($description) > 65535) {
-        fail(400, 'Nieprawidłowy lub zbyt długi opis projektu');
-    }
-
-    try {
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE keycloak_id = ?');
-        $stmt->execute([$userId]);
-        if ($stmt->fetchColumn() === false) {
-            fail(404, 'Nie znaleziono użytkownika w bazie');
-        }
-        $stmt = $pdo->prepare('INSERT INTO projects (name, description, user_id) VALUES (?, ?, ?)');
-        $stmt->execute([$name, $description, $userId]);
-        http_response_code(201);
-        echo json_encode([
-            'id' => (int) $pdo->lastInsertId(),
-            'name' => $name,
-            'description' => $description,
-        ], JSON_UNESCAPED_UNICODE);
-    } catch (PDOException $e) {
-        error_log('POST /api/projects: ' . $e->getMessage());
-        $mysqlCode = (int) ($e->errorInfo[1] ?? 0);
-        $messages = [
-            1054 => 'Brakuje kolumny w tabeli projects lub users.',
-            1146 => 'Brakuje tabeli projects lub users.',
-            1364 => 'Tabela projects wymaga dodatkowej wartości bez wartości domyślnej.',
-            1366 => 'Typ lub kodowanie danych nie pasuje do tabeli projects.',
-            1406 => 'Nazwa lub opis projektu jest za długi.',
-            1452 => 'Użytkownik nie spełnia powiązania klucza obcego w projects.',
-            1062 => 'Projekt powoduje konflikt z unikalnym wpisem.',
-        ];
-        fail(500, ($messages[$mysqlCode] ?? 'Nie udało się dodać projektu.') . ' Kod MySQL: ' . $mysqlCode . '.');
-    }
-    exit;
-}
-
 if ($path === '/api/projects' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $token = authenticate();
 
