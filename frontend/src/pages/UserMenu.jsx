@@ -27,6 +27,7 @@ export default function UserMenu() {
   };
 
   useEffect(() => {
+    document.title = 'Panel uzytkownika';
     let active = true;
     request('/api/me')
       .then(data => { if (active) setProfile(data); })
