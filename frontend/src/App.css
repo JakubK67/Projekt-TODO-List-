@@ -135,15 +135,22 @@ main{
         }
     }
 
+    .project{
+        border-radius: 25px;
+        background-color: rgb(255,250,240);
+        padding: 5%;
+        margin: 0 0 5% 0;
+        overflow-wrap: anywhere;
+        p{ white-space: pre-wrap; }
+        display: flex;
+        flex-direction: row;
+    }
+
+    .project-half{
+        width: 50%;
+    }
+
     .tasks, .projects{
-        .project{
-            border-radius: 25px;
-            background-color: rgb(255,250,240);
-            padding: 5%;
-            margin: 0 0 5% 0;
-            overflow-wrap: anywhere;
-            p{ white-space: pre-wrap; }
-        }
         .no-task-text, .no-projects-text{
             color: rgb(209, 170, 128);
         }
