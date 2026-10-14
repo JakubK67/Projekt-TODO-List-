@@ -206,7 +206,6 @@ export default function Home() {
                     <>
                       {t.project_name && <h2>{t.project_name}</h2>}
                       <h3>{t.name}</h3>
-                      <p>Termin: {t.deadline ? new Date('${t.deadline}T00:00:00').toLocaleDateString("pl-PL") : ""}</p>
                       <p>Termin: {t.deadline ? new Date(`${t.deadline}T00:00:00`).toLocaleDateString("pl-PL") : ""}</p>
                       <p>Priorytet: {t.priority}</p>
                       <p>Status: {t.status}</p>
