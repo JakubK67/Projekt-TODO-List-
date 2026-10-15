@@ -1,0 +1,194 @@
+.user-profile-panel {
+  --profile-ink: #23352d;
+  --profile-muted: #718077;
+  --profile-border: #dce5dc;
+  --profile-green: #285641;
+  width: min(100%, 760px);
+  margin: clamp(20px, 4vh, 44px) auto;
+  padding: clamp(22px, 4vw, 42px);
+  border: 1px solid var(--profile-border);
+  border-radius: 24px;
+  background: linear-gradient(145deg, #fffefa 0%, #f7f8f3 100%);
+  box-shadow: 0 22px 55px rgb(33 55 45 / 11%), 0 3px 10px rgb(33 55 45 / 4%);
+  color: var(--profile-ink);
+}
+
+.user-profile-panel h1 {
+  margin: 0 0 26px;
+  color: #193f36;
+  font-size: clamp(1.7rem, 4vw, 2.25rem);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+
+.user-profile-panel h1::after {
+  display: block;
+  width: 48px;
+  height: 4px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: #78a58b;
+  content: "";
+}
+
+.user-profile-panel > form {
+  display: grid;
+  grid-template-columns: minmax(112px, 150px) minmax(0, 1fr);
+  align-items: center;
+  gap: 14px 18px;
+  margin: 0;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid #e5e9df;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 82%);
+  box-shadow: 0 5px 16px rgb(35 63 52 / 4%);
+  text-align: left;
+}
+
+.user-profile-panel > form + .user-profile-password-toggle {
+  margin: 18px 0 22px;
+}
+
+.user-profile-panel form h2 {
+  grid-column: 1 / -1;
+  margin: 0 0 2px;
+  color: #254d40;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.user-profile-panel form label {
+  margin: 0;
+  color: #47574e;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.user-profile-panel form input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  border: 1px solid #d6dfd6;
+  border-radius: 12px;
+  background: #fff;
+  padding: 11px 14px;
+  color: var(--profile-ink);
+  font-size: 1rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.user-profile-panel form input:hover {
+  border-color: #aabcae;
+}
+
+.user-profile-panel form input:focus-visible {
+  border-color: #477a61;
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(71 122 97 / 14%);
+}
+
+.user-profile-panel form button,
+.user-profile-panel .user-profile-password-toggle {
+  min-height: 46px;
+  justify-self: start;
+  border: 1px solid var(--profile-green);
+  border-radius: 12px;
+  background: var(--profile-green);
+  padding: 11px 20px;
+  color: #fff;
+  font-size: 0.96rem;
+  font-weight: 700;
+  box-shadow: 0 5px 12px rgb(40 86 65 / 14%);
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.user-profile-panel form button {
+  grid-column: 2;
+}
+
+.user-profile-panel .user-profile-password-toggle {
+  background: #edf4ed;
+  color: #285641;
+  box-shadow: none;
+}
+
+.user-profile-panel form button:hover:not(:disabled),
+.user-profile-panel .user-profile-password-toggle:hover {
+  border-color: #1e4633;
+  background: #1e4633;
+  color: #fff;
+  box-shadow: 0 8px 18px rgb(40 86 65 / 20%);
+  transform: translateY(-1px);
+}
+
+.user-profile-panel button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.user-profile-panel button:focus-visible {
+  outline: 3px solid rgb(71 122 97 / 35%);
+  outline-offset: 3px;
+}
+
+.user-profile-panel [role="alert"],
+.user-profile-panel [role="status"] {
+  margin: 0 0 16px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 0.95rem;
+}
+
+.user-profile-panel [role="alert"] {
+  border-color: #f1c9c2;
+  background: #fff4f1;
+  color: #963b2d;
+}
+
+.user-profile-panel [role="status"] {
+  border-color: #cbe3d0;
+  background: #f0f8f1;
+  color: #28613d;
+}
+
+@media (max-width: 600px) {
+  .user-profile-panel {
+    margin: 8px auto 24px;
+    padding: 22px 16px;
+    border-radius: 18px;
+  }
+
+  .user-profile-panel > form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 18px 14px;
+  }
+
+  .user-profile-panel form h2,
+  .user-profile-panel form button {
+    grid-column: 1;
+  }
+
+  .user-profile-panel form label:not(:first-child) {
+    margin-top: 8px;
+  }
+
+  .user-profile-panel form button,
+  .user-profile-panel .user-profile-password-toggle {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .user-profile-panel > form + .user-profile-password-toggle {
+    margin: 14px 0 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-profile-panel form input,
+  .user-profile-panel form button,
+  .user-profile-panel .user-profile-password-toggle {
+    transition: none;
+  }
+}

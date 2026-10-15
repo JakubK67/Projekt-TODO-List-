@@ -27,7 +27,6 @@ Widok „Użytkownicy” jest dostępny w nawigacji dla roli `admin`, ale obecni
 | Obsługa kont | Keycloak 26.0 |
 | Baza Keycloak | PostgreSQL 16 |
 | Podgląd bazy aplikacji | phpMyAdmin |
-| Podgląd lokalnych wiadomości email | Mailpit |
 
 ## Uruchomienie przez Docker
 
@@ -83,7 +82,6 @@ docker compose ps
 | Backend | http://localhost:8080 |
 | Keycloak i panel administratora | http://localhost:8081 |
 | phpMyAdmin | http://localhost:8082 |
-| Mailpit | http://localhost:8025 |
 | MySQL | `localhost:3306` |
 
 Pierwszy start może potrwać dłużej ze względu na budowanie obrazów oraz inicjalizację baz. Dane logowania administratora Keycloak określają `KC_ADMIN_USER` i `KC_ADMIN_PASSWORD`.

@@ -4,12 +4,12 @@
     "enabled":  true,
     "registrationAllowed":  true,
     "editUsernameAllowed":  true,
-    "resetPasswordAllowed":  true,
+    "resetPasswordAllowed": false,
     "rememberMe":  true,
     "loginWithEmailAllowed":  true,
     "duplicateEmailsAllowed":  false,
     "registrationEmailAsUsername":  false,
-    "verifyEmail":  true,
+    "verifyEmail":  false,
     "loginTheme":  "todo-theme",
     "internationalizationEnabled":  true,
     "supportedLocales":  [
@@ -17,17 +17,6 @@
                              "en"
                          ],
     "defaultLocale":  "pl",
-    "smtpServer":  {
-                       "host":  "${SMTP_HOST}",
-                       "port":  "${SMTP_PORT}",
-                       "from":  "${SMTP_FROM}",
-                       "fromDisplayName":  "TODO App",
-                       "auth":  "${SMTP_AUTH}",
-                       "ssl":  "false",
-                       "starttls":  "${SMTP_STARTTLS}",
-                       "user":  "${SMTP_USER}",
-                       "password":  "${SMTP_PASSWORD}"
-                   },
     "roles":  {
                   "realm":  [
                                 {
@@ -585,14 +574,6 @@
                                                                          "autheticatorFlow":  true,
                                                                          "flowAlias":  "Browser - Conditional OTP",
                                                                          "userSetupAllowed":  false
-                                                                     },
-                                                                     {
-                                                                         "authenticator":  "todo-email-otp",
-                                                                         "authenticatorFlow":  false,
-                                                                         "requirement":  "REQUIRED",
-                                                                         "priority":  15,
-                                                                         "autheticatorFlow":  false,
-                                                                         "userSetupAllowed":  false
                                                                      }
                                                                  ]
                                 },
@@ -734,6 +715,5 @@
                                                }
                                 }
                             ],
-    "browserFlow":  "browser",
-    "emailTheme":  "todo-theme"
+    "browserFlow":  "browser"
 }

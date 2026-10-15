@@ -32,7 +32,7 @@
   "registrationAllowed" : false,
   "registrationEmailAsUsername" : false,
   "rememberMe" : false,
-  "verifyEmail" : true,
+  "verifyEmail" : false,
   "loginWithEmailAllowed" : true,
   "duplicateEmailsAllowed" : false,
   "resetPasswordAllowed" : false,
@@ -1250,21 +1250,9 @@
     "xXSSProtection" : "1; mode=block",
     "strictTransportSecurity" : "max-age=31536000; includeSubDomains"
   },
-  "smtpServer" : {
-    "host" : "${SMTP_HOST}",
-    "port" : "${SMTP_PORT}",
-    "from" : "${SMTP_FROM}",
-    "fromDisplayName" : "TODO App",
-    "auth" : "${SMTP_AUTH}",
-    "ssl" : "false",
-    "starttls" : "${SMTP_STARTTLS}",
-    "user" : "${SMTP_USER}",
-    "password" : "${SMTP_PASSWORD}"
-  },
   "loginTheme" : "todo-theme",
   "accountTheme" : "",
   "adminTheme" : "",
-  "emailTheme" : "todo-theme",
   "eventsEnabled" : false,
   "eventsListeners" : [ "jboss-logging" ],
   "enabledEventTypes" : [ ],
@@ -1792,13 +1780,6 @@
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
       "priority" : 10,
-      "autheticatorFlow" : false,
-      "userSetupAllowed" : false
-    }, {
-      "authenticator" : "todo-email-otp",
-      "authenticatorFlow" : false,
-      "requirement" : "REQUIRED",
-      "priority" : 15,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     }, {

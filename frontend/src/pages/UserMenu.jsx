@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './UserMenu.css';
 import keycloak from '../keycloak';
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -75,7 +76,7 @@ export default function UserMenu() {
   };
 
   return (
-    <section className="new-task user-profile">
+    <section className="user-profile-panel">
       <h1>Panel użytkownika</h1>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
