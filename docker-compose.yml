@@ -28,7 +28,10 @@ services:
       - keycloak_db_data:/var/lib/postgresql/data
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0
+    image: todo-keycloak:26.0.8
+    build:
+      context: ./keycloak-extensions
+      dockerfile: Dockerfile
     command: start-dev --import-realm
     environment:
       KC_DB: postgres

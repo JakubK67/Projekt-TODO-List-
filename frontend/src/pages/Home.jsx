@@ -1,6 +1,7 @@
 import axios from 'axios';
 import keycloak from '../keycloak';
 import { useState, useEffect } from "react";
+import ReportPanel from './ReportPanel';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const PRIORITIES = ['Niski', 'Normalny', 'Wysoki'];
@@ -225,7 +226,7 @@ export default function Home() {
                     <>
                       {t.project_name && <h2>{t.project_name}</h2>}
                       <h3>{t.name}</h3>
-                      <p>Termin: {t.deadline}</p>
+                      <p>Termin: {t.deadline ? new Date(`${t.deadline}T00:00:00`).toLocaleDateString("pl-PL") : ""}</p>
                       <p>Priorytet: {t.priority}</p>
                       <p>Status: {t.status}</p>
                       <p>Opis: {t.description || 'Brak opisu'}</p>
@@ -236,6 +237,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            <ReportPanel tasks={tasks} />
     </>
   );
 }

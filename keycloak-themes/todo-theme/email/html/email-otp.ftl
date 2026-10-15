@@ -1,0 +1,1 @@
+<!doctype html><html><body><p>Twój jednorazowy kod logowania do TODO:</p><p style="font-size:24px;font-weight:bold">${code?html}</p><p>Kod jest wa¿ny przez 5 minut. Jeœli to nie Ty próbujesz siê zalogowaæ, zignoruj tê wiadomoœæ.</p></body></html>
