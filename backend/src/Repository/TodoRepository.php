@@ -46,6 +46,40 @@ final class TodoRepository
         return ['id' => (int) $this->pdo->lastInsertId(), 'name' => $name, 'description' => $description];
     }
 
+    public function editProject(string $id, int $projectId, string $name, string $description): array
+    {
+        $this->ownedProject($id, $projectId);
+        $stmt = $this->pdo->prepare('UPDATE projects SET name = ?, description = ? WHERE id = ? AND user_id = ?');
+        $stmt->execute([$name, $description, $projectId, $id]);
+        return ['id' => $projectId, 'name' => $name, 'description' => $description];
+    }
+
+    public function deleteProject(string $id, int $projectId): int
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $this->ownedProject($id, $projectId, true);
+            $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE project_id = ?');
+            $stmt->execute([$projectId]);
+            $deletedTasks = $stmt->rowCount();
+            $stmt = $this->pdo->prepare('DELETE FROM projects WHERE id = ? AND user_id = ?');
+            $stmt->execute([$projectId, $id]);
+            $this->pdo->commit();
+            return $deletedTasks;
+        } catch (\Throwable $error) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            throw $error;
+        }
+    }
+
+    private function ownedProject(string $id, int $projectId, bool $lock = false): void
+    {
+        $lockSql = $lock && $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+        $stmt = $this->pdo->prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?' . $lockSql);
+        $stmt->execute([$projectId, $id]);
+        if ($stmt->fetchColumn() === false) throw new NotFoundHttpException('Nie znaleziono projektu');
+    }
+
     public function tasks(string $id): array
     {
         $user = $this->user($id);
