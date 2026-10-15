@@ -23,6 +23,11 @@ services:
             $clientId: '%env(KEYCLOAK_CLIENT_ID)%'
             $adminUsername: '%env(KEYCLOAK_ADMIN_USERNAME)%'
             $adminPassword: '%env(KEYCLOAK_ADMIN_PASSWORD)%'
+            $mfaAcrValues: '%env(KEYCLOAK_MFA_ACR_VALUES)%'
+            $frontendOrigin: '%env(FRONTEND_ORIGIN)%'
     App\EventSubscriber\ApiSubscriber:
         arguments:
             $allowedOrigin: '%env(CORS_ALLOW_ORIGIN)%'
+    App\Controller\AuthController:
+        arguments:
+            $frontendOrigin: '%env(FRONTEND_ORIGIN)%'

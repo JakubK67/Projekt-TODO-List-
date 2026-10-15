@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { PieChart, Pie, Tooltip, Legend } from 'recharts';
 
-import keycloak from '../keycloak';
+import { apiFetch } from '../api.js';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = '';
 const STATUSES = ['Do zrobienia', 'Realizowane', 'Wykonane'];
 const COLORS = ['#ef4444', '#f59e0b', '#22c55e'];
 
@@ -53,10 +53,7 @@ export default function Projects() {
     let active = true;
     (async () => {
       try {
-        await keycloak.updateToken(30);
-        const response = await fetch(`${API_URL}/api/projects`, {
-          headers: { Authorization: `Bearer ${keycloak.token}` },
-        });
+        const response = await apiFetch(`${API_URL}/api/projects`);
         const data = await readResponse(response);
         if (active) setProjekty(data);
       } catch (err) {
@@ -72,10 +69,7 @@ export default function Projects() {
     let active = true;
     (async () => {
       try {
-        await keycloak.updateToken(30);
-        const response = await fetch(`${API_URL}/api/tasks`, {
-          headers: { Authorization: `Bearer ${keycloak.token}` },
-        });
+        const response = await apiFetch(`${API_URL}/api/tasks`);
         const data = await readResponse(response);
         if (active) setTasks(data);
       } catch (err) {
@@ -98,13 +92,8 @@ export default function Projects() {
     setError('');
     setSaving(true);
     try {
-      await keycloak.updateToken(30);
-      const response = await fetch(`${API_URL}/api/projects`, {
+      const response = await apiFetch(`${API_URL}/api/projects`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${keycloak.token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ name, description }),
       });
       const project = await readResponse(response);

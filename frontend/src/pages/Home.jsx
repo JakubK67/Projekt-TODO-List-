@@ -1,9 +1,9 @@
 import axios from 'axios';
-import keycloak from '../keycloak';
+import '../api.js';
 import { useState, useEffect } from "react";
 import ReportPanel from './ReportPanel';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = '';
 const PRIORITIES = ['Niski', 'Normalny', 'Wysoki'];
 const STATUSES = ['Do zrobienia', 'Realizowane', 'Wykonane'];
 
@@ -51,7 +51,6 @@ export default function Home() {
     e.preventDefault();
     setEditError('');
     try {
-      await keycloak.updateToken(30);
       await axios.put(`${API_URL}/api/tasks/${id}`, {
         id,
         name: editForm.name,
@@ -60,7 +59,7 @@ export default function Home() {
         priority: PRIORITIES[editForm.priority],
         status: STATUSES[editForm.status],
         project_id: editForm.project_id === '' ? null : Number(editForm.project_id),
-      }, { headers: { Authorization: `Bearer ${keycloak.token}` } });
+      });
       cancelEdit();
       loadTasks();
     } catch (err) {
@@ -72,10 +71,7 @@ export default function Home() {
   const loadTasks = async () => {
     setTasksError('');
     try {
-      await keycloak.updateToken(30);
-      const res = await axios.get(`${API_URL}/api/tasks`, {
-        headers: { Authorization: `Bearer ${keycloak.token}` },
-      });
+      const res = await axios.get(`${API_URL}/api/tasks`);
       setTasks(res.data);
     } catch (err) {
       setTasksError(err.response?.data?.error || 'Nie udało się pobrać zadań. Sprawdź połączenie z backendem.');
@@ -89,10 +85,7 @@ export default function Home() {
     let active = true;
     (async () => {
       try {
-        await keycloak.updateToken(30);
-        const response = await axios.get(`${API_URL}/api/projects`, {
-          headers: { Authorization: `Bearer ${keycloak.token}` },
-        });
+        const response = await axios.get(`${API_URL}/api/projects`);
         if (active) setProjects(response.data);
       } catch (err) {
         if (active) setProjectsError(err.response?.data?.error || 'Nie udało się pobrać projektów. Możesz dodać zadanie bez projektu.');
@@ -105,11 +98,9 @@ export default function Home() {
     e.preventDefault();
     setSubmitError('');
     try {
-      await keycloak.updateToken(30);
       await axios.post(
         `${API_URL}/api/tasks`,
         { name, desc, priority, deadline, status, project_id: projectId === '' ? null : Number(projectId) },
-        { headers: { Authorization: `Bearer ${keycloak.token}` } },
       );
       loadTasks();
     } catch (err) {
@@ -120,10 +111,7 @@ export default function Home() {
 
   const handleDelete = async (id) => {
   try {
-    await keycloak.updateToken(30);
-    await axios.delete(`${API_URL}/api/tasks/${id}`, {
-      headers: { Authorization: `Bearer ${keycloak.token}` },
-    });
+    await axios.delete(`${API_URL}/api/tasks/${id}`);
     loadTasks();
   } catch (err) {
     console.error(err);

@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import './UserMenu.css';
-import keycloak from '../keycloak';
-
-const apiUrl = import.meta.env.VITE_API_URL;
+import { apiFetch } from '../api.js';
 
 export default function UserMenu() {
   const [profile, setProfile] = useState({ username: '', first_name: '', last_name: '', email: '' });
@@ -13,15 +11,7 @@ export default function UserMenu() {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const request = async (path, options = {}) => {
-    await keycloak.updateToken(30);
-    const response = await fetch(`${apiUrl}${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${keycloak.token}`,
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        ...options.headers,
-      },
-    });
+    const response = await apiFetch(path, options);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Wystąpił błąd. Spróbuj ponownie.');
     return data;

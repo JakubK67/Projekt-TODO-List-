@@ -1,5 +1,12 @@
 framework:
     secret: '%env(APP_SECRET)%'
+    session:
+        enabled: true
+        name: TODOSESSID
+        cookie_httponly: true
+        cookie_secure: '%env(bool:COOKIE_SECURE)%'
+        cookie_samesite: lax
+        cookie_lifetime: 0
     router:
         utf8: true
     http_client: ~

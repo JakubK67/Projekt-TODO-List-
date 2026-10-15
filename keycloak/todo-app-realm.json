@@ -51,7 +51,32 @@
                         "attributes":  {
                                            "post.logout.redirect.uris":  "http://localhost:3000/*",
                                            "pkce.code.challenge.method":  "S256"
-                                       }
+                                       },
+                        "protocolMappers":  [
+                                                {
+                                                    "name":  "todo-frontend-audience",
+                                                    "protocol":  "openid-connect",
+                                                    "protocolMapper":  "oidc-audience-mapper",
+                                                    "consentRequired":  false,
+                                                    "config":  {
+                                                                   "included.client.audience":  "todo-frontend",
+                                                                   "id.token.claim":  "false",
+                                                                   "access.token.claim":  "true",
+                                                                   "userinfo.token.claim":  "false"
+                                                               }
+                                                },
+                                                {
+                                                    "name":  "todo-frontend-amr",
+                                                    "protocol":  "openid-connect",
+                                                    "protocolMapper":  "oidc-amr-mapper",
+                                                    "consentRequired":  false,
+                                                    "config":  {
+                                                                   "id.token.claim":  "true",
+                                                                   "access.token.claim":  "true",
+                                                                   "lightweight.claim":  "false"
+                                                               }
+                                                }
+                                            ]
                     }
                 ],
     "users":  [
