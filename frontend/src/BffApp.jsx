@@ -37,18 +37,11 @@ export default function BffApp() {
         });
         const result = await response.json();
         if (response.status === 403) {
-          if (!sessionStorage.getItem('todo-mfa-step-up')) {
-            sessionStorage.setItem('todo-mfa-step-up', 'attempted');
-            // Keycloak tworzy jednorazowy adres i kontekst wymaganej akcji; nie zapisujemy tab_id ani client_data.
-            await keycloak.login({ action: 'CONFIGURE_TOTP', redirectUri: window.location.href });
-            return;
-          }
           setMfaRequired(true);
-          setError('Aby wejść do aplikacji, skonfiguruj lub potwierdź MFA.');
+          setError('Keycloak nie potwierdził dodatkowego uwierzytelnienia. Spróbuj przejść weryfikację ponownie.');
           return;
         }
         if (!response.ok) throw new Error('Nie udało się zalogować.');
-        sessionStorage.removeItem('todo-mfa-step-up');
         setCsrfToken(result.csrfToken);
         // Token przekazujemy do backendu raz; aplikacja korzysta dalej z sesji HttpOnly.
         keycloak.clearToken();
@@ -77,16 +70,28 @@ export default function BffApp() {
 
   if (busy) return <main className="content"><p>Trwa bezpieczne logowanie…</p></main>;
   if (mfaRequired) {
-    const accountUrl = `${import.meta.env.VITE_KEYCLOAK_URL.replace(/\/$/, '')}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}/account`;
     const continueWithMfa = () => {
-      sessionStorage.removeItem('todo-mfa-step-up');
-      keycloak.login({ action: 'CONFIGURE_TOTP', redirectUri: window.location.href });
+      const acr = import.meta.env.VITE_KEYCLOAK_MFA_ACR || '2';
+      keycloak.login({ acr: { values: [acr], essential: true }, acrValues: acr });
     };
-    return <main className="content"><p role="alert">{error}</p><p><a href={accountUrl} target="_blank" rel="noreferrer">Otwórz Bezpieczeństwo konta i skonfiguruj TOTP</a>, a następnie ponów logowanie.</p><button type="button" onClick={continueWithMfa}>Ponów uwierzytelnienie MFA</button></main>;
+    return (
+      <main className="content auth-state-page">
+        <section className="auth-card" aria-labelledby="mfa-title">
+          <div className="auth-card-mark" aria-hidden="true">✓</div>
+          <p className="auth-card-eyebrow">Wymagane dodatkowe zabezpieczenie</p>
+          <h1 id="mfa-title">Dokończ weryfikację</h1>
+          <p className="auth-card-copy">Nie udało się potwierdzić MFA. Upewnij się, że metoda uwierzytelniania jest skonfigurowana, i spróbuj ponownie.</p>
+          <p className="auth-card-error" role="alert">{error}</p>
+          <div className="auth-card-actions">
+            <button className="auth-primary" type="button" onClick={continueWithMfa}>Kontynuuj weryfikację MFA</button>
+          </div>
+          <p className="auth-card-footnote">Przy pierwszej konfiguracji Keycloak wyświetli kod QR. Po zeskanowaniu potwierdź go kodem z aplikacji.</p>
+        </section>
+      </main>
+    );
   }
   if (!auth) return <main className="content"><p role="alert">{error || 'Brak dostępu.'}</p></main>;
 
-  const accountUrl = `${import.meta.env.VITE_KEYCLOAK_URL.replace(/\/$/, '')}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}/account`;
   return (
     <div className="page">
       <nav className="nav">
@@ -101,7 +106,6 @@ export default function BffApp() {
             {logoutBusy ? 'Wylogowywanie…' : 'Wyloguj'}
           </button>
         </div>
-        <a className="nav-button" href={accountUrl} target="_blank" rel="noreferrer">Bezpieczeństwo konta</a>
       </nav>
       <main className="content">
         {error && <p role="alert">{error}</p>}

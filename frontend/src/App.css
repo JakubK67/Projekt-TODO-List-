@@ -3,6 +3,98 @@
     box-sizing: border-box;
 }
 
+.auth-state-page {
+  min-height: 80vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  width: min(100%, 520px);
+  padding: clamp(28px, 5vw, 48px);
+  border: 1px solid rgba(47, 79, 79, 0.14);
+  border-radius: 24px;
+  background: #fffaf0;
+  box-shadow: 0 20px 55px rgba(47, 79, 79, 0.12);
+  text-align: center;
+}
+
+.auth-card-mark {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border-radius: 18px;
+  background: #e5efea;
+  color: #2f4f4f;
+  font-family: sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.auth-card-eyebrow {
+  margin: 0 0 8px;
+  color: #58716d;
+  font-family: sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.auth-card h1 {
+  margin: 0;
+  color: #203b3b;
+  font-family: sans-serif;
+  font-size: clamp(24px, 4vw, 32px);
+}
+
+.auth-card-copy,
+.auth-card-footnote {
+  color: #5f6b67;
+  font-family: sans-serif;
+  line-height: 1.6;
+}
+
+.auth-card-copy { margin: 14px 0 0; }
+.auth-card-error { margin: 10px 0 0; color: #9a4d32; font-family: sans-serif; }
+
+.auth-card-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.auth-primary,
+.auth-secondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border: 1px solid #2f4f4f;
+  border-radius: 12px;
+  font-family: sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 150ms ease, transform 150ms ease;
+  cursor: pointer;
+}
+
+.auth-primary { background: #2f4f4f; color: #fff; }
+.auth-primary:hover { background: #203b3b; transform: translateY(-1px); }
+.auth-secondary { background: transparent; color: #2f4f4f; }
+.auth-secondary:hover { background: #edf2ee; }
+.auth-card-footnote { margin: 20px 0 0; font-size: 13px; }
+
+@media (max-width: 520px) {
+  .auth-state-page { padding: 24px 14px; }
+  .auth-card { border-radius: 18px; }
+}
+
 body{
     margin: 0;
 

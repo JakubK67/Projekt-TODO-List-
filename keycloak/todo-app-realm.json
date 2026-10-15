@@ -147,27 +147,19 @@
                                 },
                                 {
                                     "id":  "2949f6ee-83ca-4f62-8a2b-f37a6c6e925a",
-                                    "alias":  "Browser - Conditional OTP",
-                                    "description":  "Flow to determine if the OTP is required for the authentication",
+                                    "alias":  "Browser - OTP Required",
+                                    "description":  "Require OTP or configure TOTP during login",
                                     "providerId":  "basic-flow",
                                     "topLevel":  false,
                                     "builtIn":  true,
                                     "authenticationExecutions":  [
                                                                      {
-                                                                         "authenticator":  "conditional-user-configured",
+                                                                         "authenticator":  "auth-otp-form",
                                                                          "authenticatorFlow":  false,
                                                                          "requirement":  "REQUIRED",
                                                                          "priority":  10,
                                                                          "autheticatorFlow":  false,
-                                                                         "userSetupAllowed":  false
-                                                                     },
-                                                                     {
-                                                                         "authenticator":  "auth-otp-form",
-                                                                         "authenticatorFlow":  false,
-                                                                         "requirement":  "REQUIRED",
-                                                                         "priority":  20,
-                                                                         "autheticatorFlow":  false,
-                                                                         "userSetupAllowed":  false
+                                                                         "userSetupAllowed":  true
                                                                      }
                                                                  ]
                                 },
@@ -594,10 +586,10 @@
                                                                      },
                                                                      {
                                                                          "authenticatorFlow":  true,
-                                                                         "requirement":  "CONDITIONAL",
+                                                                         "requirement":  "REQUIRED",
                                                                          "priority":  20,
                                                                          "autheticatorFlow":  true,
-                                                                         "flowAlias":  "Browser - Conditional OTP",
+                                                                         "flowAlias":  "Browser - OTP Required",
                                                                          "userSetupAllowed":  false
                                                                      }
                                                                  ]
