@@ -2,7 +2,7 @@ import axios from 'axios';
 import keycloak from '../keycloak';
 import { useState, useEffect } from "react";
 
-const API_URL = 'http://localhost:8080';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const PRIORITIES = ['Niski', 'Normalny', 'Wysoki'];
 const STATUSES = ['Do zrobienia', 'Realizowane', 'Wykonane'];
 
@@ -21,8 +21,10 @@ export default function Home() {
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [editError, setEditError] = useState('');
 
   const startEdit = (t) => {
+    setEditError('');
     setEditingId(t.id);
     setEditForm({
       name: t.name,
@@ -30,10 +32,12 @@ export default function Home() {
       deadline: t.deadline ?? '',
       priority: String(Math.max(PRIORITIES.indexOf(t.priority), 0)),
       status: String(Math.max(STATUSES.indexOf(t.status), 0)),
+      project_id: t.project_id == null ? '' : String(t.project_id),
     });
   };
 
   const cancelEdit = () => {
+    setEditError('');
     setEditingId(null);
     setEditForm({});
   };
@@ -44,18 +48,22 @@ export default function Home() {
 
   const saveEdit = async (e, id) => {
     e.preventDefault();
+    setEditError('');
     try {
-      await axios.post(`${API_URL}/edittasks.php`, {
+      await keycloak.updateToken(30);
+      await axios.put(`${API_URL}/api/tasks/${id}`, {
         id,
         name: editForm.name,
         description: editForm.description,
         deadline: editForm.deadline,
         priority: PRIORITIES[editForm.priority],
         status: STATUSES[editForm.status],
-      });
+        project_id: editForm.project_id === '' ? null : Number(editForm.project_id),
+      }, { headers: { Authorization: `Bearer ${keycloak.token}` } });
       cancelEdit();
       loadTasks();
     } catch (err) {
+      setEditError(err.response?.data?.error || 'Nie udało się zapisać zadania.');
       console.error(err);
     }
   };
@@ -64,7 +72,7 @@ export default function Home() {
     setTasksError('');
     try {
       await keycloak.updateToken(30);
-      const res = await axios.get(`${API_URL}/showtasks.php`, {
+      const res = await axios.get(`${API_URL}/api/tasks`, {
         headers: { Authorization: `Bearer ${keycloak.token}` },
       });
       setTasks(res.data);
@@ -98,7 +106,7 @@ export default function Home() {
     try {
       await keycloak.updateToken(30);
       await axios.post(
-        `${API_URL}/addtasks.php`,
+        `${API_URL}/api/tasks`,
         { name, desc, priority, deadline, status, project_id: projectId === '' ? null : Number(projectId) },
         { headers: { Authorization: `Bearer ${keycloak.token}` } },
       );
@@ -111,7 +119,10 @@ export default function Home() {
 
   const handleDelete = async (id) => {
   try {
-    await axios.post(`${API_URL}/deletetasks.php`, { id });
+    await keycloak.updateToken(30);
+    await axios.delete(`${API_URL}/api/tasks/${id}`, {
+      headers: { Authorization: `Bearer ${keycloak.token}` },
+    });
     loadTasks();
   } catch (err) {
     console.error(err);
@@ -162,7 +173,7 @@ export default function Home() {
             <div className="tasks">
               {tasksError && <p role="alert">{tasksError}</p>}
               {tasks.map((t) => (
-                <div className={`task priority-${t.priority.toLowerCase()}`} key={t.id}>
+                <div className={`task priority-${t.priority.toLowerCase()}${editingId === t.id ? ' new-task' : ''}`} key={t.id}>
                   {editingId === t.id ? (
                     <>
                       <form onSubmit={(e) => saveEdit(e, t.id)}>
@@ -171,6 +182,13 @@ export default function Home() {
                           value={editForm.name} onChange={handleEditChange} />
                         <textarea name="description" placeholder="Opis"
                           value={editForm.description} onChange={handleEditChange}></textarea>
+
+                        <label htmlFor={`edit-project-${t.id}`}>Projekt:</label><br />
+                        <select id={`edit-project-${t.id}`} name="project_id" value={editForm.project_id} onChange={handleEditChange}>
+                          <option value="">Brak</option>
+                          {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
+                        </select><br /><br />
+                        {projectsError && <p role="alert">{projectsError}</p>}
 
                         <label>Priorytet:</label><br />
                         {PRIORITIES.map((p, i) => (
@@ -182,10 +200,6 @@ export default function Home() {
                         ))}
                         <br />
 
-                        <label htmlFor={`edit-deadline-${t.id}`}>Termin*</label>
-                        <input type="date" name="deadline" id={`edit-deadline-${t.id}`} required
-                          value={editForm.deadline} onChange={handleEditChange} /><br /><br />
-
                         <label>Status:</label><br />
                         {STATUSES.map((s, i) => (
                           <div className="radio-group" key={s}>
@@ -196,8 +210,14 @@ export default function Home() {
                         ))}
                         <br />
 
+                        <label htmlFor={`edit-deadline-${t.id}`}>Termin*</label>
+                        <input type="date" name="deadline" id={`edit-deadline-${t.id}`} required
+                          value={editForm.deadline} onChange={handleEditChange} /><br /><br />
+
                         <button type="submit">Zapisz</button>
+                        {' '}
                         <button type="button" onClick={cancelEdit}>Anuluj</button>
+                        {editError && <p role="alert">{editError}</p>}
                         <p>* - Pola wymagane</p>
                       </form>
                     </>

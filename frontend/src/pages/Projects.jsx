@@ -73,7 +73,7 @@ export default function Projects() {
     (async () => {
       try {
         await keycloak.updateToken(30);
-        const response = await fetch(`${API_URL}/showtasks.php`, {
+        const response = await fetch(`${API_URL}/api/tasks`, {
           headers: { Authorization: `Bearer ${keycloak.token}` },
         });
         const data = await readResponse(response);
@@ -99,7 +99,7 @@ export default function Projects() {
     setSaving(true);
     try {
       await keycloak.updateToken(30);
-      const response = await fetch(`${API_URL}/addprojects.php`, {
+      const response = await fetch(`${API_URL}/api/projects`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${keycloak.token}`,
