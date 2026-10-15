@@ -13,6 +13,10 @@ return [
             [['_route' => 'account_edit', '_controller' => 'App\\Controller\\AccountController::edit'], null, ['PUT' => 0], null, false, false, null],
         ],
         '/api/me/password' => [[['_route' => 'account_password', '_controller' => 'App\\Controller\\AccountController::password'], null, ['PUT' => 0], null, false, false, null]],
+        '/auth/session' => [[['_route' => 'auth_session', '_controller' => 'App\\Controller\\AuthController::establish'], null, ['POST' => 0], null, false, false, null]],
+        '/auth/me' => [[['_route' => 'auth_me', '_controller' => 'App\\Controller\\AuthController::me'], null, ['GET' => 0], null, false, false, null]],
+        '/auth/logout' => [[['_route' => 'auth_logout', '_controller' => 'App\\Controller\\AuthController::logout'], null, ['POST' => 0], null, false, false, null]],
+        '/api/admin' => [[['_route' => 'auth_admin_guard', '_controller' => 'App\\Controller\\AuthController::admin'], null, ['GET' => 0], null, false, false, null]],
         '/api/projects' => [
             [['_route' => 'projects_list', '_controller' => 'App\\Controller\\ProjectController::list'], null, ['GET' => 0], null, false, false, null],
             [['_route' => 'projects_add', '_controller' => 'App\\Controller\\ProjectController::add'], null, ['POST' => 0], null, false, false, null],
