@@ -1,0 +1,28 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+    App\:
+        resource: '../src/'
+        exclude: '../src/Kernel.php'
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+    PDO:
+        class: PDO
+        factory: ['@App\Service\ConnectionFactory', 'connect']
+        arguments:
+            - '%env(DB_DSN)%'
+            - '%env(DB_USER)%'
+            - '%env(DB_PASSWORD)%'
+    App\Service\Keycloak:
+        arguments:
+            $baseUrl: '%env(KEYCLOAK_URL)%'
+            $realm: '%env(KEYCLOAK_REALM)%'
+            $issuer: '%env(KEYCLOAK_ISSUER)%'
+            $clientId: '%env(KEYCLOAK_CLIENT_ID)%'
+            $adminUsername: '%env(KEYCLOAK_ADMIN_USERNAME)%'
+            $adminPassword: '%env(KEYCLOAK_ADMIN_PASSWORD)%'
+    App\EventSubscriber\ApiSubscriber:
+        arguments:
+            $allowedOrigin: '%env(CORS_ALLOW_ORIGIN)%'

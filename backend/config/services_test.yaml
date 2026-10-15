@@ -1,0 +1,9 @@
+services:
+    PDO:
+        class: PDO
+        factory: null
+        public: true
+        arguments: ['sqlite::memory:']
+    http_client:
+        class: Symfony\Component\HttpClient\MockHttpClient
+        public: true
