@@ -154,6 +154,7 @@
                                     "builtIn":  true,
                                     "authenticationExecutions":  [
                                                                      {
+                                                                         "authenticatorConfig":  "otp AMR reference",
                                                                          "authenticator":  "auth-otp-form",
                                                                          "authenticatorFlow":  false,
                                                                          "requirement":  "REQUIRED",
@@ -729,6 +730,14 @@
                                     "alias":  "review profile config",
                                     "config":  {
                                                    "update.profile.on.first.login":  "missing"
+                                               }
+                                },
+                                {
+                                    "id":  "adcd3ae9-c9cf-4f90-8a8a-14624a77d8c0",
+                                    "alias":  "otp AMR reference",
+                                    "config":  {
+                                                   "default.reference.value":  "otp",
+                                                   "default.reference.maxAge":  "36000"
                                                }
                                 }
                             ],

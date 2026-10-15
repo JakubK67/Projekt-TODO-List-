@@ -44,7 +44,6 @@ export default function BffApp() {
         if (!response.ok) throw new Error('Nie udało się zalogować.');
         setCsrfToken(result.csrfToken);
         // Token przekazujemy do backendu raz; aplikacja korzysta dalej z sesji HttpOnly.
-        keycloak.clearToken();
         if (active) setAuth(result);
       } catch {
         if (active) setError('Nie udało się zalogować. Odśwież stronę lub spróbuj ponownie.');

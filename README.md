@@ -107,6 +107,21 @@ docker compose down
 
 `docker compose down` zachowuje nazwane wolumeny baz. Nie używaj opcji `-v`, jeśli chcesz zachować dane. Zmiana haseł w `.env` nie zmienia automatycznie haseł użytkowników w istniejących bazach.
 
+### Zastosowanie zmian konfiguracji Keycloak po aktualizacji repozytorium
+
+Keycloak przechowuje realm, konta, hasła i konfigurację MFA w osobnym wolumenie PostgreSQL. Podczas startu `--import-realm` pomija realm, który już istnieje, więc samo `git pull` ani `docker compose up` nie aktualizuje konfiguracji wcześniej uruchomionego Keycloaka. Konta i kody MFA nie są przenoszone przez Git.
+
+Jeśli lokalny Keycloak ma starą konfigurację przepływu logowania, można w środowisku deweloperskim zaimportować realm ponownie. Poniższe polecenia usuwają **wyłącznie wolumen Keycloaka**; konta Keycloak, ich hasła i MFA zostaną skasowane. Wolumen MySQL z zadaniami i projektami pozostaje bez zmian:
+
+```powershell
+docker compose down
+docker volume ls --filter label=com.docker.compose.volume=keycloak_db_data
+docker volume rm <nazwa-wolumenu-keycloak_db_data-z-poprzedniego-polecenia>
+docker compose up -d --build
+```
+
+Każdy współpracownik powinien zarejestrować własne konto na ekranie logowania albo użyć kont demonstracyjnych z `keycloak/todo-app-realm.json` (`user1` / `user123` lub `admin1` / `admin123`). Konto utworzone lokalnie przez inną osobę nie jest dostępne po `git pull`.
+
 ## Struktura projektu
 
 ```text

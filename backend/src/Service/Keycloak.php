@@ -129,7 +129,7 @@ class Keycloak
         $session->invalidate();
         $params = ['client_id' => $this->clientId, 'post_logout_redirect_uri' => $this->frontendOrigin];
         if ($idToken !== '') $params['id_token_hint'] = $idToken;
-        return $this->realmUrl() . '/protocol/openid-connect/logout?' . http_build_query($params);
+        return rtrim($this->issuer, '/') . '/protocol/openid-connect/logout?' . http_build_query($params);
     }
 
     public function updateProfile(object $token, array $profile): void

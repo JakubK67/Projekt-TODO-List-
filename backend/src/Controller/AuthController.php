@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Repository\TodoRepository;
 use App\Service\Keycloak;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class AuthController
 {
-    public function __construct(private Keycloak $keycloak, private string $frontendOrigin) {}
+    public function __construct(private Keycloak $keycloak, private TodoRepository $repository, private string $frontendOrigin) {}
 
     #[Route('/auth/session', name: 'auth_session', methods: ['POST'])]
     public function establish(Request $request): JsonResponse
@@ -26,6 +27,7 @@ final class AuthController
         }
         if (!is_array($tokens)) throw new HttpException(400, 'Nie udało się rozpocząć sesji.');
         $token = $this->keycloak->establishSession($request, $tokens);
+        $this->repository->login($token);
         return new JsonResponse($this->keycloak->sessionInfo($request, $token));
     }
 

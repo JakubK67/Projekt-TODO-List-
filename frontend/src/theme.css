@@ -109,7 +109,7 @@ nav.nav .user-menu {
 
 nav.nav .user-menu .user-menu-logout {
   position: absolute;
-  top: calc(100% + 8px);
+  top: 100%;
   right: 0;
   z-index: 10;
   width: max-content;
