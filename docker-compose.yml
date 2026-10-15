@@ -92,6 +92,9 @@ services:
         VITE_KEYCLOAK_MFA_ACR: ${KEYCLOAK_MFA_ACR_VALUES:-2}
     ports:
       - "3000:80"
+    depends_on:
+      backend:
+        condition: service_started
 
 volumes:
   app_mysql_data:
