@@ -66,7 +66,7 @@ export default function UserMenu() {
   };
 
   return (
-    <section className="user-profile-panel">
+    <section className="new-task user-profile">
       <h1>Panel użytkownika</h1>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}

@@ -47,6 +47,10 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [tasksError, setTasksError] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', description: '' });
+  const [actionError, setActionError] = useState('');
+  const [busyId, setBusyId] = useState(null);
 
   useEffect(() => {
     document.title = 'Projekty';
@@ -107,6 +111,50 @@ export default function Projects() {
     }
   };
 
+  const startEdit = project => {
+    setEditingId(project.id);
+    setEditForm({ name: project.name, description: project.description ?? '' });
+    setActionError('');
+  };
+
+  const saveProject = async event => {
+    event.preventDefault();
+    if (busyId !== null) return;
+    setBusyId(editingId);
+    setActionError('');
+    try {
+      const response = await apiFetch(`/api/projects/${editingId}`, {
+        method: 'PUT',
+        body: JSON.stringify(editForm),
+      });
+      const updated = await readResponse(response);
+      setProjekty(previous => previous.map(project => Number(project.id) === Number(updated.id) ? updated : project));
+      setEditingId(null);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const deleteProject = async project => {
+    if (busyId !== null) return;
+    if (!window.confirm(`Czy na pewno usunąć projekt „${project.name}” i WSZYSTKIE należące do niego zadania? Tej operacji nie można cofnąć.`)) return;
+    setBusyId(project.id);
+    setActionError('');
+    try {
+      const response = await apiFetch(`/api/projects/${project.id}`, { method: 'DELETE' });
+      await readResponse(response);
+      setProjekty(previous => previous.filter(item => Number(item.id) !== Number(project.id)));
+      setTasks(previous => previous.filter(task => Number(task.project_id) !== Number(project.id)));
+      if (editingId === project.id) setEditingId(null);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <>
       <div className="new-task">
@@ -120,16 +168,33 @@ export default function Projects() {
         </form>
       </div>
       <div className="projects">
+        {actionError && <p role="alert">{actionError}</p>}
         {loading && <p>Ładowanie projektów…</p>}
         {!loading && !error && projekty.length === 0 && <p className="no-projects-text">Nie masz jeszcze projektów.</p>}
         {tasksError && <p role="alert">{tasksError}</p>}
         {projekty.map(project => {
           const projectTasks = tasksByProject[project.id] ?? [];
           return (
-            <div className="project" key={project.id}>
+            <div className={`project${editingId === project.id ? ' new-task' : ''}`} key={project.id}>
               <div className="project-half">
-                <h3>{project.name}</h3>
-                {project.description && <p>{project.description}</p>}
+                {editingId === project.id ? (
+                  <form onSubmit={saveProject}>
+                    <h3>Edytuj projekt</h3>
+                    <label htmlFor={`project-name-${project.id}`}>Nazwa projektu*</label>
+                    <input id={`project-name-${project.id}`} type="text" required maxLength={100} value={editForm.name} onChange={event => setEditForm({ ...editForm, name: event.target.value })} />
+                    <label htmlFor={`project-description-${project.id}`}>Opis</label>
+                    <textarea id={`project-description-${project.id}`} value={editForm.description} onChange={event => setEditForm({ ...editForm, description: event.target.value })} />
+                    <button type="submit" disabled={busyId !== null}>{busyId === project.id ? 'Zapisywanie…' : 'Zapisz'}</button>{' '}
+                    <button type="button" disabled={busyId !== null} onClick={() => setEditingId(null)}>Anuluj</button>
+                  </form>
+                ) : (
+                  <>
+                    <h3>{project.name}</h3>
+                    {project.description && <p>{project.description}</p>}
+                    <button type="button" disabled={busyId !== null} onClick={() => startEdit(project)}>Edytuj</button>{' '}
+                  </>
+                )}
+                <button className={editingId === project.id ? 'project-delete-editing' : undefined} type="button" disabled={busyId !== null} onClick={() => deleteProject(project)}>Usuń projekt</button>
                 <h4>Zadania:</h4>
                 {projectTasks.length === 0 ? (
                   <p>Brak zadań w tym projekcie.</p>

@@ -110,10 +110,13 @@ export default function Home() {
   };
 
   const handleDelete = async (id) => {
+  const task = tasks.find(item => item.id === id);
+  if (!window.confirm(`Czy na pewno usunąć zadanie „${task?.name || 'Wybrane zadanie'}”? Tej operacji nie można cofnąć.`)) return;
   try {
     await axios.delete(`${API_URL}/api/tasks/${id}`);
     loadTasks();
   } catch (err) {
+    setTasksError(err.response?.data?.error || 'Nie udało się usunąć zadania.');
     console.error(err);
   }
 };
