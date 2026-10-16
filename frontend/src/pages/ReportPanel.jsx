@@ -178,7 +178,7 @@ export default function ReportPanel({ tasks }) {
       {previewBlob && (
         <div>
           <h2>Podgląd (PDF.js)</h2>
-          <div ref={previewRef} />
+          <div ref={previewRef} className='report-preview'/>
         </div>
       )}
     </div>

@@ -4,7 +4,6 @@ export default function Profile() {
   const t = keycloak.tokenParsed || {};
   const verified = t.email_verified === true;
 
-  // Przekierowanie na ekran Keycloaka, po zapisaniu użytkownik wraca na tę stronę
   const runAction = (action) =>
     keycloak.login({ action, redirectUri: window.location.href });
 

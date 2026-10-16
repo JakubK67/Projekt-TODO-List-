@@ -353,3 +353,7 @@ main{
 .project-delete-editing {
     margin-top: 20px;
 }
+
+.report-preview{
+    border: 1px solid darkslategrey;
+}
