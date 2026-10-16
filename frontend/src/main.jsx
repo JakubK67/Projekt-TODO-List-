@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./BffApp.jsx";
+import AuthenticatedApp from "./AuthenticatedApp.jsx";
 import keycloak from "./keycloak";
 import "./index.css";
 
@@ -14,7 +14,7 @@ keycloak
       root.render(
         <React.StrictMode>
           <BrowserRouter>
-            <App />
+            <AuthenticatedApp />
           </BrowserRouter>
         </React.StrictMode>
       );
