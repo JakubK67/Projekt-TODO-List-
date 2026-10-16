@@ -134,7 +134,6 @@ Przed pierwszym uruchomieniem usuń tę linię montowania z własnej konfiguracj
 ### 3. Start
 
 ```powershell
-docker compose config --quiet
 docker compose up -d --build
 ```
 
