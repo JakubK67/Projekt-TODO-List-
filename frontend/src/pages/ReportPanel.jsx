@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import DateInput from '../components/DateInput';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -158,9 +159,9 @@ export default function ReportPanel({ tasks }) {
       <form onSubmit={handleGenerate}>
         <h1>Raport zadań</h1>
         <label htmlFor="report-from">Od (termin):</label>
-        <input type="date" id="report-from" value={from} onChange={(e) => setFrom(e.target.value)} /><br /><br />
+        <DateInput id="report-from" value={from} onChange={setFrom} /><br /><br />
         <label htmlFor="report-to">Do (termin):</label>
-        <input type="date" id="report-to" value={to} onChange={(e) => setTo(e.target.value)} /><br /><br />
+        <DateInput id="report-to" value={to} onChange={setTo} /><br /><br />
 
         <label>Format:</label><br />
         {[['pdf', 'PDF'], ['csv', 'CSV']].map(([v, label]) => (

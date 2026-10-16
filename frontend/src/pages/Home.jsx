@@ -2,6 +2,8 @@ import axios from 'axios';
 import '../api.js';
 import { useState, useEffect } from "react";
 import ReportPanel from './ReportPanel';
+import DateInput from '../components/DateInput';
+import { formatDate } from '../utils/date';
 
 const API_URL = '';
 const PRIORITIES = ['Niski', 'Normalny', 'Wysoki'];
@@ -155,7 +157,7 @@ export default function Home() {
                     ))}
                     <br />
                     <label htmlFor="termin">Termin*</label>
-                    <input type="date" name="termin" id="termin" required onChange={(e) => setDl(e.target.value)} /><br /><br />
+                    <DateInput name="termin" id="termin" required value={deadline} onChange={setDl} /><br /><br />
                     <button type="submit">Dodaj Zadanie</button>
                     {submitError && <p role="alert">{submitError}</p>}
                     <p>* - Pola wymagane</p>
@@ -203,8 +205,8 @@ export default function Home() {
                         <br />
 
                         <label htmlFor={`edit-deadline-${t.id}`}>Termin*</label>
-                        <input type="date" name="deadline" id={`edit-deadline-${t.id}`} required
-                          value={editForm.deadline} onChange={handleEditChange} /><br /><br />
+                        <DateInput name="deadline" id={`edit-deadline-${t.id}`} required
+                          value={editForm.deadline} onChange={value => setEditForm(previous => ({ ...previous, deadline: value }))} /><br /><br />
 
                         <button type="submit">Zapisz</button>
                         {' '}
@@ -217,7 +219,7 @@ export default function Home() {
                     <>
                       {t.project_name && <h2>{t.project_name}</h2>}
                       <h3>{t.name}</h3>
-                      <p>Termin: {t.deadline ? new Date(`${t.deadline}T00:00:00`).toLocaleDateString("pl-PL") : ""}</p>
+                      <p>Termin: {formatDate(t.deadline)}</p>
                       <p>Priorytet: {t.priority}</p>
                       <p>Status: {t.status}</p>
                       <p>Opis: {t.description || 'Brak opisu'}</p>
