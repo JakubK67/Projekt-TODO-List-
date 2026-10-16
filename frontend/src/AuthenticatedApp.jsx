@@ -8,7 +8,7 @@ import Users from './pages/Users.jsx';
 import UserMenu from './pages/UserMenu.jsx';
 import './App.css';
 
-function AdminGuard({ auth, children }) {
+function AdminGuard({ children }) {
   const [allowed, setAllowed] = useState(null);
   useEffect(() => {
     apiFetch('/api/admin').then(response => setAllowed(response.ok)).catch(() => setAllowed(false));
@@ -17,7 +17,7 @@ function AdminGuard({ auth, children }) {
   return allowed ? children : <p role="alert">Brak uprawnień do tej strony.</p>;
 }
 
-export default function BffApp() {
+export default function AuthenticatedApp() {
   const [auth, setAuth] = useState(null);
   const [error, setError] = useState('');
   const [mfaRequired, setMfaRequired] = useState(false);
@@ -113,8 +113,8 @@ export default function BffApp() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/panel" element={<UserMenu />} />
           <Route path="/usermenu" element={<Navigate to="/panel" replace />} />
-          <Route path="/admin" element={<AdminGuard auth={auth}><Users /></AdminGuard>} />
-          <Route path="/users" element={<AdminGuard auth={auth}><Users /></AdminGuard>} />
+          <Route path="/admin" element={<AdminGuard><Users /></AdminGuard>} />
+          <Route path="/users" element={<AdminGuard><Users /></AdminGuard>} />
           <Route path="*" element={<p>Nie znaleziono strony.</p>} />
         </Routes>
       </main>
