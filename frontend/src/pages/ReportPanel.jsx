@@ -149,7 +149,10 @@ export default function ReportPanel({ tasks }) {
   }, [previewBlob]);
 
   const getRows = () => {
-    if (from && to && from > to) {
+    const effFrom = from || monthStart;
+    const effTo = to || monthEnd;
+
+    if (effFrom > effTo) {
       setError('Data początkowa nie może być późniejsza niż końcowa.');
       return null;
     }
@@ -161,30 +164,31 @@ export default function ReportPanel({ tasks }) {
       setError('Wybierz co najmniej jeden status.');
       return null;
     }
-    const rows = filterTasks(tasks, from, to, excludedPriorities, excludedStatuses);
+    const rows = filterTasks(tasks, effFrom, effTo, excludedPriorities, excludedStatuses);
     if (rows.length === 0) {
       setError('Brak zadań w wybranym okresie.');
       return null;
     }
-    return rows;
+    return { rows, effFrom, effTo };
   };
 
   const handleGenerate = async (e) => {
     e.preventDefault();
     setError('');
     setPreviewBlob(null);
-    const rows = getRows();
-    if (!rows) return;
+    const result = getRows();
+    if (!result) return;
+    const { rows, effFrom, effTo } = result;
     setBusy(true);
     try {
-      const stamp = `${from || 'start'}_${to || 'koniec'}`;
+      const stamp = `${effFrom}_${effTo}`;
       if (format === 'csv') {
         download(
           new Blob([buildCsv(rows)], { type: 'text/csv;charset=utf-8' }),
           `raport-zadan_${stamp}.csv`,
         );
       } else {
-        const blob = await createPdfBlob(buildPdfDefinition(rows, from, to));
+        const blob = await createPdfBlob(buildPdfDefinition(rows, effFrom, effTo));
         setPreviewBlob(blob);
         download(blob, `raport-zadan_${stamp}.pdf`);
       }
