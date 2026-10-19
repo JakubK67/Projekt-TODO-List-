@@ -7,6 +7,7 @@ use App\Service\Keycloak;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 final class TaskController
 {
@@ -41,6 +42,20 @@ final class TaskController
         }
         $this->repository->editTask($token->sub, Input::id($id), $task);
         return new JsonResponse(['ok' => true]);
+    }
+
+    #[Route('/api/tasks/{id}/status', name: 'tasks_status', requirements: ['id' => '\d+'], methods: ['PUT'])]
+    public function status(Request $request, string $id): JsonResponse
+    {
+        $token = $this->keycloak->authenticate($request);
+        $body = Input::json($request);
+        $status = $body['status'] ?? null;
+        if (!is_string($status) || !in_array($status, ['Do zrobienia', 'Realizowane', 'Wykonane'], true)) {
+            throw new BadRequestHttpException('Nieprawidłowy status zadania');
+        }
+        $taskId = Input::id($id);
+        $this->repository->changeTaskStatus($token->sub, $taskId, $status);
+        return new JsonResponse(['ok' => true, 'id' => $taskId, 'status' => $status]);
     }
 
     #[Route('/api/tasks/{id}', name: 'tasks_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]

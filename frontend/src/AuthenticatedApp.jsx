@@ -6,6 +6,7 @@ import Home from './pages/Home.jsx';
 import Projects from './pages/Projects.jsx';
 import Users from './pages/Users.jsx';
 import UserMenu from './pages/UserMenu.jsx';
+import Kanban from './pages/Kanban.jsx';
 import './App.css';
 
 function AdminGuard({ children }) {
@@ -95,6 +96,7 @@ export default function AuthenticatedApp() {
     <div className="page">
       <nav className="nav">
         <button className="nav-button" onClick={() => navigate('/tasks')}>Zadania</button>
+        <button className="nav-button" onClick={() => navigate('/kanban')}>Kanban</button>
         <button className="nav-button" onClick={() => navigate('/projects')}>Projekty</button>
         {auth.isAdmin && <NavLink to="/admin">Administracja</NavLink>}
         <div className="user-menu">
@@ -113,6 +115,7 @@ export default function AuthenticatedApp() {
           <Route path="/index" element={<Navigate to="/tasks" replace />} />
           <Route path="/index.html" element={<Navigate to="/tasks" replace />} />
           <Route path="/tasks" element={<Home />} />
+          <Route path="/kanban" element={<Kanban />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/panel" element={<UserMenu />} />
           <Route path="/usermenu" element={<Navigate to="/panel" replace />} />

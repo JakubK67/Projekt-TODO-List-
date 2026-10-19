@@ -116,6 +116,17 @@ final class TodoRepository
         $stmt->execute($values);
     }
 
+    public function changeTaskStatus(string $id, int $taskId, string $status): void
+    {
+        if (!in_array($status, ['Do zrobienia', 'Realizowane', 'Wykonane'], true)) {
+            throw new BadRequestHttpException('Nieprawidłowy status zadania');
+        }
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('UPDATE tasks SET status = ? WHERE id = ? AND user_id = ?');
+        $stmt->execute([$status, $taskId, $user['id']]);
+    }
+
     public function deleteTask(string $id, int $taskId): void
     {
         $user = $this->user($id);
