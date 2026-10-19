@@ -22,6 +22,18 @@ const COLUMNS = [
 
 const STATUSES = ['Do zrobienia', 'W trakcie', 'Zakończone'];
 
+const pad = (n) => String(n).padStart(2, '0');
+
+const formatDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+const getCurrentMonthRange = () => {
+  const now = new Date();
+  return [
+    formatDate(new Date(now.getFullYear(), now.getMonth(), 1)),
+    formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+  ];
+};
+
 const filterTasks = (tasks, from, to, excludedPriorities, excludedStatuses) =>
   tasks.filter((t) => {
     if (!t.deadline) return false;
@@ -112,6 +124,7 @@ async function renderPreview(blob, container) {
 export default function ReportPanel({ tasks }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [monthStart, monthEnd] = useMemo(getCurrentMonthRange, []);
   const [format, setFormat] = useState('pdf');
   const [excludedPriorities, setExcludedPriorities] = useState([]);
   const [excludedStatuses, setExcludedStatuses] = useState([]);
@@ -187,9 +200,9 @@ export default function ReportPanel({ tasks }) {
       <form onSubmit={handleGenerate}>
         <h1>Raport zadań</h1>
         <label htmlFor="report-from">Od (termin):</label>
-        <DateInput id="report-from" value={from} onChange={setFrom} /><br /><br />
+        <DateInput id="report-from" value={from} onChange={setFrom} placeholder={monthStart} /><br /><br />
         <label htmlFor="report-to">Do (termin):</label>
-        <DateInput id="report-to" value={to} onChange={setTo} /><br /><br />
+        <DateInput id="report-to" value={to} onChange={setTo} placeholder={monthEnd} /><br /><br />
 
         <label>Priorytet:</label><br />
         {priorities.map((p) => (
