@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import Papa from 'papaparse';
 import DateInput from '../components/DateInput';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -19,13 +20,20 @@ const COLUMNS = [
   ['Opis', 'description'],
 ];
 
-const filterByPeriod = (tasks, from, to) =>
+const STATUSES = ['Do zrobienia', 'W trakcie', 'Zakończone'];
+
+const filterTasks = (tasks, from, to, excludedPriorities, excludedStatuses) =>
   tasks.filter((t) => {
     if (!t.deadline) return false;
     if (from && t.deadline < from) return false;
     if (to && t.deadline > to) return false;
+    if (excludedPriorities.includes(t.priority)) return false;
+    if (excludedStatuses.includes(t.status)) return false;
     return true;
   });
+
+const toggleItem = (list, item) =>
+  list.includes(item) ? list.filter((x) => x !== item) : [...list, item];
 
 const download = (blob, filename) => {
   const url = URL.createObjectURL(blob);
@@ -36,15 +44,20 @@ const download = (blob, filename) => {
   URL.revokeObjectURL(url);
 };
 
-const buildCsv = (rows) => {
-  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const lines = [
-    COLUMNS.map(([h]) => esc(h)).join(';'),
-    ...rows.map((t) => COLUMNS.map(([, k]) => esc(t[k])).join(';')),
-  ];
-
-  return '\uFEFF' + lines.join('\r\n');
-};
+const buildCsv = (rows) =>
+  '\uFEFF' +
+  Papa.unparse(
+    {
+      fields: COLUMNS.map(([header]) => header),
+      data: rows.map((t) => COLUMNS.map(([, key]) => t[key] ?? '')),
+    },
+    {
+      delimiter: ';',
+      newline: '\r\n',
+      quotes: true,
+      escapeFormulae: true,
+    },
+  );
 
 const buildPdfDefinition = (rows, from, to) => ({
   pageOrientation: 'landscape',
@@ -100,10 +113,17 @@ export default function ReportPanel({ tasks }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [format, setFormat] = useState('pdf');
+  const [excludedPriorities, setExcludedPriorities] = useState([]);
+  const [excludedStatuses, setExcludedStatuses] = useState([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [previewBlob, setPreviewBlob] = useState(null);
   const previewRef = useRef(null);
+
+  const priorities = useMemo(
+    () => [...new Set(tasks.map((t) => t.priority).filter(Boolean))],
+    [tasks],
+  );
 
   useEffect(() => {
     if (previewBlob && previewRef.current) {
@@ -119,7 +139,15 @@ export default function ReportPanel({ tasks }) {
       setError('Data początkowa nie może być późniejsza niż końcowa.');
       return null;
     }
-    const rows = filterByPeriod(tasks, from, to);
+    if (priorities.length > 0 && priorities.every((p) => excludedPriorities.includes(p))) {
+      setError('Wybierz co najmniej jeden priorytet.');
+      return null;
+    }
+    if (STATUSES.every((s) => excludedStatuses.includes(s))) {
+      setError('Wybierz co najmniej jeden status.');
+      return null;
+    }
+    const rows = filterTasks(tasks, from, to, excludedPriorities, excludedStatuses);
     if (rows.length === 0) {
       setError('Brak zadań w wybranym okresie.');
       return null;
@@ -163,6 +191,28 @@ export default function ReportPanel({ tasks }) {
         <label htmlFor="report-to">Do (termin):</label>
         <DateInput id="report-to" value={to} onChange={setTo} /><br /><br />
 
+        <label>Priorytet:</label><br />
+        {priorities.map((p) => (
+          <div className="checkbox-group" key={p}>
+            <input type="checkbox" id={`report-priority-${p}`} name="report-priority" value={p}
+              checked={!excludedPriorities.includes(p)}
+              onChange={() => setExcludedPriorities((prev) => toggleItem(prev, p))} />
+            <label htmlFor={`report-priority-${p}`}>{p}</label><br />
+          </div>
+        ))}
+        <br />
+
+        <label>Status:</label><br />
+        {STATUSES.map((s) => (
+          <div className="checkbox-group" key={s}>
+            <input type="checkbox" id={`report-status-${s}`} name="report-status" value={s}
+              checked={!excludedStatuses.includes(s)}
+              onChange={() => setExcludedStatuses((prev) => toggleItem(prev, s))} />
+            <label htmlFor={`report-status-${s}`}>{s}</label><br />
+          </div>
+        ))}
+        <br />
+
         <label>Format:</label><br />
         {[['pdf', 'PDF'], ['csv', 'CSV']].map(([v, label]) => (
           <div className="radio-group" key={v}>
@@ -179,7 +229,7 @@ export default function ReportPanel({ tasks }) {
       {previewBlob && (
         <div>
           <h2>Podgląd (PDF.js)</h2>
-          <div ref={previewRef} className='report-preview'/>
+          <div ref={previewRef} className="report-preview" />
         </div>
       )}
     </div>
