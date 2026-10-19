@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import DateInput from '../components/DateInput';
+import { formatDate as formatDisplayDate } from '../utils/date';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -200,9 +201,9 @@ export default function ReportPanel({ tasks }) {
       <form onSubmit={handleGenerate}>
         <h1>Raport zadań</h1>
         <label htmlFor="report-from">Od (termin):</label>
-        <DateInput id="report-from" value={from} onChange={setFrom} placeholder={monthStart} /><br /><br />
+        <DateInput id="report-from" value={from} onChange={setFrom} placeholder={formatDisplayDate(monthStart)} /><br /><br />
         <label htmlFor="report-to">Do (termin):</label>
-        <DateInput id="report-to" value={to} onChange={setTo} placeholder={monthEnd} /><br /><br />
+        <DateInput id="report-to" value={to} onChange={setTo} placeholder={formatDisplayDate(monthEnd)} /><br /><br />
 
         <label>Priorytet:</label><br />
         {priorities.map((p) => (
