@@ -150,7 +150,7 @@ docker compose up -d --build
 | API Symfony | http://localhost:8080 |
 | Keycloak | http://localhost:8081 |
 | phpMyAdmin | http://localhost:8082 |
-| MySQL | `localhost:3306` |
+| MySQL | http://localhost:3306 |
 
 Aktualny Compose nie uruchamia Mailpit. Reset hasła przez link jest wyłączony w pliku realm, a działającej wysyłki email nie należy zakładać bez osobnej konfiguracji SMTP.
 
