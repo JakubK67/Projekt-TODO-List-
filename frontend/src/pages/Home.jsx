@@ -224,6 +224,7 @@ export default function Home() {
                       <p>Status: {t.status}</p>
                       <p>Opis: {t.description || 'Brak opisu'}</p>
                       <button type="button" onClick={() => startEdit(t)}>Edytuj</button>
+                      {' '}
                       <button type="button" onClick={() => handleDelete(t.id)}>Usuń</button>
                     </>
                   )}

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { formatDate, parseDate } from '../utils/date';
 import './DateInput.css';
 
-export default function DateInput({ id, name, value = '', onChange, required = false }) {
+export default function DateInput({ id, name, value = '', onChange, required = false, placeholder = 'dd-MM-yyyy' }) {
   const [draft, setDraft] = useState({ source: value, text: formatDate(value) });
   const inputRef = useRef(null);
 
@@ -25,7 +25,7 @@ export default function DateInput({ id, name, value = '', onChange, required = f
   return (
     <span className="date-input">
       <input ref={inputRef} className="date-input-text" id={id} name={name} type="text"
-        placeholder="dd-MM-yyyy" maxLength={10} required={required}
+        placeholder={placeholder} maxLength={10} required={required}
         title="Data w formacie dd-MM-yyyy" autoComplete="off"
         value={draft.source === value ? draft.text : formatDate(value)} onChange={changeText} />
       <span className="date-input-trigger">

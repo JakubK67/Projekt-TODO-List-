@@ -19,6 +19,12 @@ Dokumentacja opisuje aktualne pliki repozytorium. Konfiguracja już działające
 
 Priorytety: **Niski**, **Normalny**, **Wysoki**. Statusy: **Do zrobienia**, **Realizowane**, **Wykonane**.
 
+### Kanban
+
+Widok `/kanban` pokazuje własne zadania w trzech kolumnach: **Do zrobienia** (czerwonej), **Realizowane** (żółtej), **Wykonane** (zielonej). Zmiana statusu jest dostępna wyłącznie przez select na karcie.
+
+Zmiana jest zapisywana automatycznie. W trakcie zapisu karta jest zablokowana, a błąd przywraca jej poprzedni status i wyświetla komunikat. Karty pokazują nazwę projektu, nazwę i opis zadania, termin oraz priorytet. Tablica korzysta z istniejących zadań i nie wymaga zmiany schematu bazy.
+
 ### Projekty
 
 - Tworzenie projektu z nazwą i opcjonalnym opisem.
@@ -67,6 +73,7 @@ Dokładne wersje zależności zapisane są w plikach `composer.lock` i `package-
 | Adres | Widok |
 | --- | --- |
 | `/tasks` | Zadania i raporty |
+| `/kanban` | Tablica zadań ze zmianą statusu przez select |
 | `/projects` | Projekty |
 | `/panel` | Panel użytkownika |
 | `/admin`, `/users` | Widok administracyjny z kontrolą uprawnień |
@@ -284,6 +291,7 @@ Nowe tabele są puste. Lokalne konto użytkownika jest dodawane podczas ustanawi
 | GET | `/api/tasks` | Lista własnych zadań |
 | POST | `/api/tasks` | Dodanie zadania |
 | PUT | `/api/tasks/{id}` | Edycja własnego zadania, w tym projektu |
+| PUT | `/api/tasks/{id}/status` | Zmiana wyłącznie statusu własnego zadania; JSON zawiera `status` z pełną nazwą |
 | DELETE | `/api/tasks/{id}` | Usunięcie własnego zadania |
 | GET | `/api/projects` | Lista własnych projektów |
 | POST | `/api/projects` | Dodanie projektu |
@@ -349,6 +357,8 @@ npm run dev
 Vite używa portu 3000 i przekazuje `/api` oraz `/auth` do `http://localhost:8080`. Dla lokalnego uruchamiania ustaw zmienne frontendu `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM` i `VITE_KEYCLOAK_CLIENT_ID`; opcjonalne `VITE_KEYCLOAK_MFA_ACR` domyślnie wynosi `2`.
 
 ### Obecny stan testów
+
+`php backend/tests/kanban_status.php` sprawdza kontroler zmiany statusu i repozytorium na SQLite: dozwolone statusy, zachowanie pozostałych danych, błędne dane i kontrolę właściciela. Używa testowej tożsamości i nie zastępuje testu sesji ani logowania na rzeczywistym Keycloak.
 
 W repozytorium jest skrypt `backend/tests/integration.php` oparty na SQLite i zastępczym kliencie HTTP Keycloak. Obejmuje operacje zadań i projektów, kontrolę właściciela oraz wycofanie transakcji przy błędzie usuwania projektu.
 
