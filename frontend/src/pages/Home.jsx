@@ -3,11 +3,25 @@ import '../api.js';
 import { useState, useEffect } from "react";
 import ReportPanel from './ReportPanel';
 import DateInput from '../components/DateInput';
+import CalendarView from '../components/CalendarView';
 import { formatDate } from '../utils/date';
 
 const API_URL = '';
 const PRIORITIES = ['Niski', 'Normalny', 'Wysoki'];
 const STATUSES = ['Do zrobienia', 'Realizowane', 'Wykonane'];
+const VIEWS = [
+  { id: 'list', label: 'Lista' },
+  { id: 'calendar', label: 'Kalendarz' },
+];
+
+const loadView = () => {
+  try {
+    const saved = localStorage.getItem('tasksView');
+    return VIEWS.some(v => v.id === saved) ? saved : 'list';
+  } catch {
+    return 'list';
+  }
+};
 
 export default function Home() {
   const [name, setName] = useState('');
@@ -21,10 +35,20 @@ export default function Home() {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState('');
   const [projectsError, setProjectsError] = useState('');
+  const [view, setView] = useState(loadView);
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [editError, setEditError] = useState('');
+
+  const changeView = (id) => {
+    setView(id);
+    try {
+      localStorage.setItem('tasksView', id);
+    } catch {
+      
+    }
+  };
 
   const startEdit = (t) => {
     setEditError('');
@@ -112,18 +136,16 @@ export default function Home() {
   };
 
   const handleDelete = async (id) => {
-  const task = tasks.find(item => item.id === id);
-  if (!window.confirm(`Czy na pewno usunąć zadanie „${task?.name || 'Wybrane zadanie'}”? Tej operacji nie można cofnąć.`)) return;
-  try {
-    await axios.delete(`${API_URL}/api/tasks/${id}`);
-    loadTasks();
-  } catch (err) {
-    setTasksError(err.response?.data?.error || 'Nie udało się usunąć zadania.');
-    console.error(err);
-  }
-};
-
-
+    const task = tasks.find(item => item.id === id);
+    if (!window.confirm(`Czy na pewno usunąć zadanie „${task?.name || 'Wybrane zadanie'}”? Tej operacji nie można cofnąć.`)) return;
+    try {
+      await axios.delete(`${API_URL}/api/tasks/${id}`);
+      loadTasks();
+    } catch (err) {
+      setTasksError(err.response?.data?.error || 'Nie udało się usunąć zadania.');
+      console.error(err);
+    }
+  };
 
   return (
     <>
@@ -164,6 +186,26 @@ export default function Home() {
                 </form>
             </div>
 
+            <div className="view-switch" role="group" aria-label="Widok zadań">
+              {VIEWS.map(v => (
+                <button
+                  type="button"
+                  key={v.id}
+                  aria-pressed={view === v.id}
+                  disabled={view === v.id}
+                  onClick={() => changeView(v.id)}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
+
+            {view === 'calendar' ? (
+              <>
+                {tasksError && <p role="alert">{tasksError}</p>}
+                <CalendarView tasks={tasks} />
+              </>
+            ) : (
             <div className="tasks">
               {tasksError && <p role="alert">{tasksError}</p>}
               {tasks.map((t) => (
@@ -231,8 +273,8 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            )}
             <ReportPanel tasks={tasks} />
     </>
   );
 }
-

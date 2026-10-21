@@ -1,7 +1,6 @@
 ﻿import { useState, useRef, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import DateInput from '../components/DateInput';
-import { filterTasks } from './reportFilters';
 import { formatDate as formatDisplayDate } from '../utils/date';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
