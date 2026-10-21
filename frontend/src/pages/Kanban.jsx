@@ -87,7 +87,6 @@ export default function Kanban() {
       {loading ? <p role="status">Ładowanie zadań…</p> : (
         <>
           {error && tasks.length === 0 && <button type="button" onClick={() => loadTasks()}>Spróbuj ponownie</button>}
-          {!error && tasks.length === 0 && <p>Nie masz jeszcze zadań. Dodaj je w zakładce „Zadania”.</p>}
           <div className="kanban-board">
             {COLUMNS.map(column => {
               const columnTasks = tasks.filter(task => task.status === column.status);
