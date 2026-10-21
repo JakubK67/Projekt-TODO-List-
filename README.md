@@ -6,6 +6,21 @@ Aplikacja służy do zarządzania własnymi zadaniami i projektami. Frontend jes
 
 Dokumentacja opisuje aktualne pliki repozytorium. Konfiguracja już działającego Keycloak może różnić się od pliku importu.
 
+## Spis treści
+
+- [Funkcje aplikacji](#funkcje-aplikacji)
+- [Technologie](#technologie)
+- [Adresy stron](#adresy-stron)
+- [Logowanie, sesja i MFA](#logowanie-sesja-i-mfa)
+- [Uruchomienie przez Docker](#uruchomienie-przez-docker)
+- [Keycloak i import realm](#keycloak-i-import-realm)
+- [Struktura projektu](#struktura-projektu)
+- [Baza aplikacji](#baza-aplikacji)
+- [API](#api)
+- [Praca lokalna i sprawdzanie zmian](#praca-lokalna-i-sprawdzanie-zmian)
+- [Rozwiązywanie problemów](#rozwiązywanie-problemów)
+- [Ograniczenia aktualnej wersji](#ograniczenia-aktualnej-wersji)
+
 ## Funkcje aplikacji
 
 ### Zadania
@@ -19,11 +34,29 @@ Dokumentacja opisuje aktualne pliki repozytorium. Konfiguracja już działające
 
 Priorytety: **Niski**, **Normalny**, **Wysoki**. Statusy: **Do zrobienia**, **Realizowane**, **Wykonane**.
 
+<p align="center">
+  <img src="docs/images/07-zadania-nowe-zadanie.png" alt="Formularz dodawania nowego zadania" width="800">
+  <br>
+  <em>Widok zadań — formularz dodawania nowego zadania (nazwa, opis, projekt, priorytet, status, termin).</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/09-zadania-karta-zadania.png" alt="Karta zadania z przyciskami Edytuj i Usuń" width="800">
+  <br>
+  <em>Karta zadania na liście: nazwa projektu, termin, priorytet, status, opis oraz przyciski „Edytuj” i „Usuń”.</em>
+</p>
+
 ### Kanban
 
 Widok `/kanban` pokazuje własne zadania w trzech kolumnach: **Do zrobienia** (czerwonej), **Realizowane** (żółtej), **Wykonane** (zielonej). Zmiana statusu jest dostępna wyłącznie przez select na karcie.
 
 Zmiana jest zapisywana automatycznie. W trakcie zapisu karta jest zablokowana, a błąd przywraca jej poprzedni status i wyświetla komunikat. Karty pokazują nazwę projektu, nazwę i opis zadania, termin oraz priorytet. Tablica korzysta z istniejących zadań i nie wymaga zmiany schematu bazy.
+
+<p align="center">
+  <img src="docs/images/10-kanban.png" alt="Tablica Kanban z trzema kolumnami" width="800">
+  <br>
+  <em>Tablica Kanban — zadania w kolumnach „Do zrobienia”, „Realizowane” i „Wykonane”.</em>
+</p>
 
 ### Projekty
 
@@ -35,11 +68,23 @@ Zmiana jest zapisywana automatycznie. W trakcie zapisu karta jest zablokowana, a
 
 Backend sprawdza właściciela projektu. Usunięcie zadań i projektu odbywa się w jednej transakcji: błąd powoduje wycofanie operacji. Okno potwierdzenia jest elementem interfejsu, a kontrola dostępu działa niezależnie po stronie API.
 
+<p align="center">
+  <img src="docs/images/11-projekty.png" alt="Widok projektów z wykresem kołowym" width="800">
+  <br>
+  <em>Widok projektów — formularz nowego projektu, lista zadań projektu i wykres kołowy statusów.</em>
+</p>
+
 ### Raporty
 
 Panel raportów znajduje się na stronie zadań. Umożliwia pobranie raportu **PDF** lub **CSV** oraz podgląd wygenerowanego PDF w przeglądarce.
 
 Raport zawiera nazwę zadania, projekt, termin, priorytet, status i opis. Zakres dat dotyczy **terminu zadania**, a nie daty jego utworzenia. Granice zakresu są włączone. Pusta granica nie ogranicza zakresu z tej strony. Zadania bez terminu są pomijane. Raport powstaje w przeglądarce na podstawie już pobranej listy zadań.
+
+<p align="center">
+  <img src="docs/images/08-zadania-raport.png" alt="Panel generowania raportu zadań" width="800">
+  <br>
+  <em>Panel „Raport zadań” — zakres terminów, priorytet, status i format (PDF / CSV).</em>
+</p>
 
 ### Panel użytkownika
 
@@ -49,34 +94,46 @@ Zmiany danych są przekazywane do Keycloak i lokalnej tabeli `users`. Zmiana ema
 
 Widok administracyjny jest dostępny dla roli `admin`, ale komponent `Users.jsx` zawiera obecnie tylko miejsce na przyszły panel zarządzania użytkownikami.
 
+<p align="center">
+  <img src="docs/images/12-panel-uzytkownika.png" alt="Panel użytkownika z edycją profilu" width="700">
+  <br>
+  <em>Panel użytkownika — edycja loginu, emaila, imienia i nazwiska oraz przycisk „Zmień hasło”. W menu dostępne jest „Wyloguj”.</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/13-zmiana-hasla.png" alt="Formularz zmiany hasła" width="700">
+  <br>
+  <em>Formularz zmiany hasła — obecne hasło, nowe hasło i jego potwierdzenie.</em>
+</p>
+
 ## Technologie
 
-| Warstwa | Rozwiązanie |
-| --- | --- |
-| Interfejs | React 19, React Router 7, Vite 8 |
-| Żądania HTTP | Axios i wspólna funkcja `apiFetch` |
-| Wykresy | Recharts |
-| Raporty | pdfmake, PDF.js (`pdfjs-dist`) |
-| Backend | Symfony 7.4, PHP 8.3 w Dockerze |
-| Baza aplikacji | MySQL 8.4, PDO |
-| Konta i logowanie | Keycloak 26.0.8, OpenID Connect, `keycloak-js` |
-| Baza Keycloak | PostgreSQL 16 |
-| Weryfikacja JWT | `firebase/php-jwt` |
-| Serwowanie frontendu | Nginx |
-| Podgląd bazy | phpMyAdmin |
-| Środowisko | Docker Compose |
+| Warstwa              | Rozwiązanie                                    |
+| -------------------- | ---------------------------------------------- |
+| Interfejs            | React 19, React Router 7, Vite 8               |
+| Żądania HTTP         | Axios i wspólna funkcja `apiFetch`             |
+| Wykresy              | Recharts                                       |
+| Raporty              | pdfmake, PDF.js (`pdfjs-dist`)                 |
+| Backend              | Symfony 7.4, PHP 8.3 w Dockerze                |
+| Baza aplikacji       | MySQL 8.4, PDO                                 |
+| Konta i logowanie    | Keycloak 26.0.8, OpenID Connect, `keycloak-js` |
+| Baza Keycloak        | PostgreSQL 16                                  |
+| Weryfikacja JWT      | `firebase/php-jwt`                             |
+| Serwowanie frontendu | Nginx                                          |
+| Podgląd bazy         | phpMyAdmin                                     |
+| Środowisko           | Docker Compose                                 |
 
 Dokładne wersje zależności zapisane są w plikach `composer.lock` i `package-lock.json`.
 
 ## Adresy stron
 
-| Adres | Widok |
-| --- | --- |
-| `/tasks` | Zadania i raporty |
-| `/kanban` | Tablica zadań ze zmianą statusu przez select |
-| `/projects` | Projekty |
-| `/panel` | Panel użytkownika |
-| `/admin`, `/users` | Widok administracyjny z kontrolą uprawnień |
+| Adres              | Widok                                        |
+| ------------------ | -------------------------------------------- |
+| `/tasks`           | Zadania i raporty                            |
+| `/kanban`          | Tablica zadań ze zmianą statusu przez select |
+| `/projects`        | Projekty                                     |
+| `/panel`           | Panel użytkownika                            |
+| `/admin`, `/users` | Widok administracyjny z kontrolą uprawnień   |
 
 Adresy `/`, `/index` i `/index.html` przekierowują do `/tasks`. Adres `/usermenu` przekierowuje do `/panel`. Przekierowania React działają po zakończeniu logowania i ustanowieniu sesji aplikacji.
 
@@ -92,6 +149,52 @@ Aktywnym komponentem aplikacji jest **`BffApp.jsx`**, importowany przez `main.js
 6. Backend odświeża token dostępu przy użyciu tokenu odświeżania. Wylogowanie unieważnia sesję aplikacji i przekierowuje do wylogowania Keycloak.
 
 API korzysta obecnie z sesji. Sam nagłówek `Authorization: Bearer ...` nie zastępuje zalogowanej sesji. Tokeny są jednak dostępne w pamięci przeglądarki podczas inicjalizacji przez `keycloak-js`; aplikacja nie realizuje całego logowania wyłącznie po stronie serwera.
+
+### Ekrany logowania i rejestracji
+
+Przy pierwszym wejściu na aplikację użytkownik jest przekierowywany do strony logowania Keycloak.
+
+<p align="center">
+  <img src="docs/images/01-logowanie.png" alt="Panel logowania — login lub e-mail" width="600">
+  <br>
+  <em>Panel logowania — pierwszy krok: login lub e-mail, hasło oraz link do rejestracji.</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/02-rejestracja.png" alt="Formularz tworzenia konta" width="600">
+  <br>
+  <em>Formularz tworzenia konta — login, hasło (z potwierdzeniem), e-mail, imię i nazwisko.</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/03-logowanie-haslo.png" alt="Logowanie — podanie hasła" width="600">
+  <br>
+  <em>Logowanie — krok podania hasła dla wybranego użytkownika.</em>
+</p>
+
+### Konfiguracja i weryfikacja MFA
+
+Przy pierwszym logowaniu Keycloak wymaga skonfigurowania aplikacji uwierzytelniającej (Microsoft Authenticator, Google Authenticator lub FreeOTP): należy zeskanować kod QR, a następnie wpisać wygenerowany kod jednorazowy i opcjonalnie nazwę urządzenia. Przy kolejnych logowaniach wymagany jest już tylko kod jednorazowy.
+
+<p align="center">
+  <img src="docs/images/04-mfa-konfiguracja-otp.png" alt="Konfiguracja Mobile Authenticator z kodem QR" width="600">
+  <br>
+  <em>Pierwsze logowanie — konfiguracja Mobile Authenticator (kod QR, kod jednorazowy, nazwa urządzenia).</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/05-mfa-kod-jednorazowy.png" alt="Logowanie — kod jednorazowy" width="600">
+  <br>
+  <em>Kolejne logowania — podanie kodu jednorazowego z aplikacji uwierzytelniającej.</em>
+</p>
+
+Jeśli backend nie potwierdzi dodatkowego uwierzytelnienia (odpowiedź 403 podczas ustanawiania sesji), interfejs wyświetla ekran ponownej weryfikacji MFA:
+
+<p align="center">
+  <img src="docs/images/06-mfa-weryfikacja.png" alt="Ekran Dokończ weryfikację MFA" width="600">
+  <br>
+  <em>Ekran „Dokończ weryfikację” — przycisk „Kontynuuj weryfikację MFA” ponawia przejście przez uwierzytelnianie w Keycloak.</em>
+</p>
 
 ### Obecne wymaganie MFA
 
@@ -115,20 +218,20 @@ Copy-Item .env.example .env
 
 Nie nadpisuj istniejącego `.env`, jeśli zawiera konfigurację działających baz. Ustaw własne hasła oraz długi losowy `APP_SECRET`. Nie umieszczaj rzeczywistych sekretów w repozytorium.
 
-| Zmienna | Przeznaczenie |
-| --- | --- |
-| `APP_DB_NAME`, `APP_DB_USER`, `APP_DB_PASSWORD` | Baza aplikacji i jej użytkownik |
-| `APP_DB_ROOT_PASSWORD` | Hasło administratora MySQL przy inicjalizacji |
-| `KC_DB_USER`, `KC_DB_PASSWORD` | Użytkownik bazy PostgreSQL Keycloak |
-| `KC_ADMIN_USER`, `KC_ADMIN_PASSWORD` | Administrator Keycloak; używany też przez backend do edycji kont |
-| `APP_SECRET` | Sekret Symfony |
-| `FRONTEND_ORIGIN` | Adres aplikacji, domyślnie `http://localhost:3000` |
-| `COOKIE_SECURE` | `false` dla lokalnego HTTP; przy HTTPS ustaw `true` |
-| `KEYCLOAK_PUBLIC_URL` | Adres Keycloak dostępny z przeglądarki |
-| `KEYCLOAK_REALM` | Realm aplikacji, domyślnie `todo-app` |
-| `KEYCLOAK_CLIENT_ID` | Klient, domyślnie `todo-frontend` |
-| `KEYCLOAK_ISSUER` | Issuer, domyślnie `http://localhost:8081/realms/todo-app` |
-| `KEYCLOAK_MFA_ACR_VALUES` | Akceptowane ACR; obecny przykład wymaga `2` |
+| Zmienna                                         | Przeznaczenie                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| `APP_DB_NAME`, `APP_DB_USER`, `APP_DB_PASSWORD` | Baza aplikacji i jej użytkownik                                  |
+| `APP_DB_ROOT_PASSWORD`                          | Hasło administratora MySQL przy inicjalizacji                    |
+| `KC_DB_USER`, `KC_DB_PASSWORD`                  | Użytkownik bazy PostgreSQL Keycloak                              |
+| `KC_ADMIN_USER`, `KC_ADMIN_PASSWORD`            | Administrator Keycloak; używany też przez backend do edycji kont |
+| `APP_SECRET`                                    | Sekret Symfony                                                   |
+| `FRONTEND_ORIGIN`                               | Adres aplikacji, domyślnie `http://localhost:3000`               |
+| `COOKIE_SECURE`                                 | `false` dla lokalnego HTTP; przy HTTPS ustaw `true`              |
+| `KEYCLOAK_PUBLIC_URL`                           | Adres Keycloak dostępny z przeglądarki                           |
+| `KEYCLOAK_REALM`                                | Realm aplikacji, domyślnie `todo-app`                            |
+| `KEYCLOAK_CLIENT_ID`                            | Klient, domyślnie `todo-frontend`                                |
+| `KEYCLOAK_ISSUER`                               | Issuer, domyślnie `http://localhost:8081/realms/todo-app`        |
+| `KEYCLOAK_MFA_ACR_VALUES`                       | Akceptowane ACR; obecny przykład wymaga `2`                      |
 
 Compose ustawia wewnętrzny `KEYCLOAK_URL=http://keycloak:8080` oraz dane połączenia `DB_DSN`, `DB_USER`, `DB_PASSWORD`. `CORS_ALLOW_ORIGIN` pochodzi z `FRONTEND_ORIGIN`. Zmienne `VITE_*` są przekazywane podczas budowania frontendu, więc ich zmiana wymaga przebudowy obrazu.
 
@@ -140,17 +243,17 @@ Przed pierwszym uruchomieniem usuń tę linię montowania z własnej konfiguracj
 
 ### 3. Start
 
-```powershell
+```bash
 docker compose up -d --build
 ```
 
-| Usługa | Adres |
-| --- | --- |
-| Aplikacja | http://localhost:3000 |
-| API Symfony | http://localhost:8080 |
-| Keycloak | http://localhost:8081 |
-| phpMyAdmin | http://localhost:8082 |
-| MySQL | http://localhost:3306 |
+| Usługa      | Adres                   |
+| ----------- | ----------------------- |
+| Aplikacja   | <http://localhost:3000> |
+| API Symfony | <http://localhost:8080> |
+| Keycloak    | <http://localhost:8081> |
+| phpMyAdmin  | <http://localhost:8082> |
+| MySQL       | `localhost:3306`        |
 
 Aktualny Compose nie uruchamia Mailpit. Reset hasła przez link jest wyłączony w pliku realm, a działającej wysyłki email nie należy zakładać bez osobnej konfiguracji SMTP.
 
@@ -158,7 +261,7 @@ Nginx przekazuje `/api/` i `/auth/` do backendu, dzięki czemu frontend i API s�
 
 ### 4. Przebudowa i logi
 
-```powershell
+```bash
 docker compose up -d --build frontend
 docker compose up -d --build backend
 docker compose logs --tail=100 backend
@@ -169,7 +272,7 @@ docker compose exec backend php bin/console app:database:init
 
 Po przebudowie frontendu odśwież stronę przez Ctrl+F5. W obecnym Compose montowany jest tylko `backend/public`; zmiany `backend/src`, `backend/config`, zależności i Dockerfile wymagają przebudowy backendu.
 
-```powershell
+```bash
 docker compose down
 ```
 
@@ -241,8 +344,11 @@ keycloak/
   todo-app-realm.json
   realm-export.json
 keycloak-themes/
+docs/
+  images/            # zrzuty ekranu używane w dokumentacji
 docker-compose.yml
 .env.example
+README.md
 ```
 
 - Kontrolery obsługują żądania i odpowiedzi JSON.
@@ -256,11 +362,11 @@ Pliki `App.jsx`, `Profile.jsx` i `theme.css` pozostają w repozytorium, ale nie 
 
 ## Baza aplikacji
 
-| Tabela | Kolumny |
-| --- | --- |
-| `users` | `id`, `keycloak_id`, `username`, `first_name`, `last_name`, `email`, `role`, `created_at`, `last_login` |
-| `projects` | `id`, `name`, `description`, `user_id` |
-| `tasks` | `id`, `name`, `description`, `deadline`, `created`, `updated`, `priority`, `status`, `user_id`, `project_id` |
+| Tabela     | Kolumny                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| `users`    | `id`, `keycloak_id`, `username`, `first_name`, `last_name`, `email`, `role`, `created_at`, `last_login`      |
+| `projects` | `id`, `name`, `description`, `user_id`                                                                       |
+| `tasks`    | `id`, `name`, `description`, `deadline`, `created`, `updated`, `priority`, `status`, `user_id`, `project_id` |
 
 Powiązania:
 
@@ -280,24 +386,24 @@ Nowe tabele są puste. Lokalne konto użytkownika jest dodawane podczas ustanawi
 
 Żądania aplikacji są kierowane przez Nginx na porcie 3000. Wymagają aktywnej sesji. Operacje zmieniające dane wymagają również prawidłowego `Origin` i `X-CSRF-Token`, poza ustanawianiem sesji, które ma własną weryfikację originu.
 
-| Metoda | Adres | Działanie |
-| --- | --- | --- |
-| POST | `/auth/session` | Weryfikacja tokenów i ustanowienie sesji |
-| GET | `/auth/me` | Informacje o sesji i token CSRF |
-| POST | `/auth/logout` | Unieważnienie sesji i uzyskanie adresu wylogowania Keycloak |
-| GET | `/api/me` | Pobranie lokalnego profilu, rejestracja konta przy pierwszym użyciu |
-| PUT | `/api/me` | Zmiana loginu, emaila, imienia i nazwiska |
-| PUT | `/api/me/password` | Zmiana hasła |
-| GET | `/api/tasks` | Lista własnych zadań |
-| POST | `/api/tasks` | Dodanie zadania |
-| PUT | `/api/tasks/{id}` | Edycja własnego zadania, w tym projektu |
-| PUT | `/api/tasks/{id}/status` | Zmiana wyłącznie statusu własnego zadania; JSON zawiera `status` z pełną nazwą |
-| DELETE | `/api/tasks/{id}` | Usunięcie własnego zadania |
-| GET | `/api/projects` | Lista własnych projektów |
-| POST | `/api/projects` | Dodanie projektu |
-| PUT | `/api/projects/{id}` | Edycja nazwy i opisu projektu |
-| DELETE | `/api/projects/{id}` | Usunięcie projektu i jego zadań |
-| GET | `/api/admin` | Sprawdzenie roli administratora |
+| Metoda | Adres                    | Działanie                                                                      |
+| ------ | ------------------------ | ------------------------------------------------------------------------------ |
+| POST   | `/auth/session`          | Weryfikacja tokenów i ustanowienie sesji                                       |
+| GET    | `/auth/me`               | Informacje o sesji i token CSRF                                                |
+| POST   | `/auth/logout`           | Unieważnienie sesji i uzyskanie adresu wylogowania Keycloak                    |
+| GET    | `/api/me`                | Pobranie lokalnego profilu, rejestracja konta przy pierwszym użyciu            |
+| PUT    | `/api/me`                | Zmiana loginu, emaila, imienia i nazwiska                                      |
+| PUT    | `/api/me/password`       | Zmiana hasła                                                                   |
+| GET    | `/api/tasks`             | Lista własnych zadań                                                           |
+| POST   | `/api/tasks`             | Dodanie zadania                                                                |
+| PUT    | `/api/tasks/{id}`        | Edycja własnego zadania, w tym projektu                                        |
+| PUT    | `/api/tasks/{id}/status` | Zmiana wyłącznie statusu własnego zadania; JSON zawiera `status` z pełną nazwą |
+| DELETE | `/api/tasks/{id}`        | Usunięcie własnego zadania                                                     |
+| GET    | `/api/projects`          | Lista własnych projektów                                                       |
+| POST   | `/api/projects`          | Dodanie projektu                                                               |
+| PUT    | `/api/projects/{id}`     | Edycja nazwy i opisu projektu                                                  |
+| DELETE | `/api/projects/{id}`     | Usunięcie projektu i jego zadań                                                |
+| GET    | `/api/admin`             | Sprawdzenie roli administratora                                                |
 
 Przykład danych projektu:
 
@@ -329,14 +435,14 @@ Błędy mają postać `{"error":"komunikat"}`. Typowe kody to 400 dla błędnych
 
 Do pracy poza Dockerem potrzebne są PHP co najmniej 8.2, Composer, rozszerzenia wymagane przez pakiety Symfony, PDO MySQL, dostępny MySQL i Keycloak. Testy korzystają dodatkowo z PDO SQLite. Frontend wymaga Node.js zgodnego z Vite; obraz używa Node.js 22.
 
-```powershell
+```bash
 cd backend
 composer install
 ```
 
 Backend ładuje `backend/.env`, a gdy go nie ma — `backend/.env.dist`. Obecny `.env.dist` nie zawiera wszystkich zmiennych nowszej obsługi sesji. Przy pracy lokalnej trzeba dopisać co najmniej `COOKIE_SECURE`, `FRONTEND_ORIGIN` i `KEYCLOAK_MFA_ACR_VALUES`, a także skonfigurować bazę, Keycloak oraz sekret. Poza Dockerem te wartości nie są automatycznie pobierane z głównego `.env` przez Compose.
 
-```powershell
+```bash
 php bin/console debug:router
 php bin/console lint:container
 php bin/console lint:yaml config
@@ -346,7 +452,7 @@ php -S localhost:8080 -t public public/router.php
 
 Frontend:
 
-```powershell
+```bash
 cd frontend
 npm ci
 npm run build
@@ -378,16 +484,16 @@ W repozytorium jest skrypt `backend/tests/integration.php` oparty na SQLite i za
 
 ## Rozwiązywanie problemów
 
-| Objaw | Co sprawdzić |
-| --- | --- |
-| Błąd 500 API | `docker compose logs --tail=100 backend`, połączenie z bazą i inicjalizację tabel |
-| Brak tabel | `docker compose exec backend php bin/console app:database:init` i uprawnienia MySQL |
-| Ekran wymagający MFA | Konfigurację OTP, claimy `acr`/`amr` i mapery klienta w Keycloak |
+| Objaw                          | Co sprawdzić                                                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Błąd 500 API                   | `docker compose logs --tail=100 backend`, połączenie z bazą i inicjalizację tabel                                     |
+| Brak tabel                     | `docker compose exec backend php bin/console app:database:init` i uprawnienia MySQL                                   |
+| Ekran wymagający MFA           | Konfigurację OTP, claimy `acr`/`amr` i mapery klienta w Keycloak                                                      |
 | „Nieprawidłowe dane logowania” | Konto, hasło i aktualny przepływ w istniejącym realm; sam log `invalid_user_credentials` nie wyjaśnia całej przyczyny |
-| Błąd usuniętego providera | Pozostały krok `todo-email-otp` w zapisanej konfiguracji Keycloak |
-| Błąd 403 przy zapisie | Sesję, CSRF, origin oraz dostęp do zasobu |
-| Zmiany interfejsu niewidoczne | Przebudowę frontendu i odświeżenie Ctrl+F5 |
-| Błąd profilu lub hasła | Konfigurację Admin API, administratora, klienta `admin-cli` oraz wymagania uwierzytelniania konta |
+| Błąd usuniętego providera      | Pozostały krok `todo-email-otp` w zapisanej konfiguracji Keycloak                                                     |
+| Błąd 403 przy zapisie          | Sesję, CSRF, origin oraz dostęp do zasobu                                                                             |
+| Zmiany interfejsu niewidoczne  | Przebudowę frontendu i odświeżenie Ctrl+F5                                                                            |
+| Błąd profilu lub hasła         | Konfigurację Admin API, administratora, klienta `admin-cli` oraz wymagania uwierzytelniania konta                     |
 
 ## Ograniczenia aktualnej wersji
 
