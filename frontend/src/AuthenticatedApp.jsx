@@ -7,6 +7,7 @@ import Projects from './pages/Projects.jsx';
 import Users from './pages/Users.jsx';
 import UserMenu from './pages/UserMenu.jsx';
 import Kanban from './pages/Kanban.jsx';
+import Statistics from './pages/Statistics.jsx';
 import './App.css';
 
 function AdminGuard({ children }) {
@@ -103,9 +104,12 @@ export default function AuthenticatedApp() {
           <button className="nav-button" onClick={() => navigate('/panel')}>
             {auth.username}{auth.isAdmin ? ' (administrator)' : ' (użytkownik)'}
           </button>
-          <button className="btn secondary user-menu-logout nav-button" onClick={logout} disabled={logoutBusy}>
-            {logoutBusy ? 'Wylogowywanie…' : 'Wyloguj'}
-          </button>
+          <div className="user-menu-dropdown">
+            <button type="button" className="nav-button" onClick={() => navigate('/statistics')}>Statystyki</button>
+            <button type="button" className="btn secondary user-menu-logout nav-button" onClick={logout} disabled={logoutBusy}>
+              {logoutBusy ? 'Wylogowywanie…' : 'Wyloguj'}
+            </button>
+          </div>
         </div>
       </nav>
       <main className="content">
@@ -118,6 +122,7 @@ export default function AuthenticatedApp() {
           <Route path="/kanban" element={<Kanban />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/panel" element={<UserMenu />} />
+          <Route path="/statistics" element={<Statistics />} />
           <Route path="/usermenu" element={<Navigate to="/panel" replace />} />
           <Route path="/admin" element={<AdminGuard><Users /></AdminGuard>} />
           <Route path="/users" element={<AdminGuard><Users /></AdminGuard>} />
