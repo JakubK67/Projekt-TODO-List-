@@ -1,11 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import DateInput from '../components/DateInput';
-<<<<<<< HEAD
 import { filterTasks } from './reportFilters';
-=======
-import { formatDate as formatDisplayDate } from '../utils/date';
->>>>>>> 6436c95c2da2eee69df9aabfd66c4126da6d99bc
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -27,31 +23,6 @@ const COLUMNS = [
 
 const STATUSES = ['Do zrobienia', 'W trakcie', 'Zakończone'];
 
-<<<<<<< HEAD
-=======
-const pad = (n) => String(n).padStart(2, '0');
-
-const formatDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-const getCurrentMonthRange = () => {
-  const now = new Date();
-  return [
-    formatDate(new Date(now.getFullYear(), now.getMonth(), 1)),
-    formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
-  ];
-};
-
-const filterTasks = (tasks, from, to, excludedPriorities, excludedStatuses) =>
-  tasks.filter((t) => {
-    if (!t.deadline) return false;
-    if (from && t.deadline < from) return false;
-    if (to && t.deadline > to) return false;
-    if (excludedPriorities.includes(t.priority)) return false;
-    if (excludedStatuses.includes(t.status)) return false;
-    return true;
-  });
-
->>>>>>> 6436c95c2da2eee69df9aabfd66c4126da6d99bc
 const toggleItem = (list, item) =>
   list.includes(item) ? list.filter((x) => x !== item) : [...list, item];
 
@@ -132,7 +103,6 @@ async function renderPreview(blob, container) {
 export default function ReportPanel({ tasks }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [monthStart, monthEnd] = useMemo(getCurrentMonthRange, []);
   const [format, setFormat] = useState('pdf');
   const [excludedPriorities, setExcludedPriorities] = useState([]);
   const [excludedStatuses, setExcludedStatuses] = useState([]);
@@ -156,10 +126,7 @@ export default function ReportPanel({ tasks }) {
   }, [previewBlob]);
 
   const getRows = () => {
-    const effFrom = from || monthStart;
-    const effTo = to || monthEnd;
-
-    if (effFrom > effTo) {
+    if (from && to && from > to) {
       setError('Data początkowa nie może być późniejsza niż końcowa.');
       return null;
     }
@@ -171,31 +138,30 @@ export default function ReportPanel({ tasks }) {
       setError('Wybierz co najmniej jeden status.');
       return null;
     }
-    const rows = filterTasks(tasks, effFrom, effTo, excludedPriorities, excludedStatuses);
+    const rows = filterTasks(tasks, from, to, excludedPriorities, excludedStatuses);
     if (rows.length === 0) {
       setError('Brak zadań w wybranym okresie.');
       return null;
     }
-    return { rows, effFrom, effTo };
+    return rows;
   };
 
   const handleGenerate = async (e) => {
     e.preventDefault();
     setError('');
     setPreviewBlob(null);
-    const result = getRows();
-    if (!result) return;
-    const { rows, effFrom, effTo } = result;
+    const rows = getRows();
+    if (!rows) return;
     setBusy(true);
     try {
-      const stamp = `${effFrom}_${effTo}`;
+      const stamp = `${from || 'start'}_${to || 'koniec'}`;
       if (format === 'csv') {
         download(
           new Blob([buildCsv(rows)], { type: 'text/csv;charset=utf-8' }),
           `raport-zadan_${stamp}.csv`,
         );
       } else {
-        const blob = await createPdfBlob(buildPdfDefinition(rows, effFrom, effTo));
+        const blob = await createPdfBlob(buildPdfDefinition(rows, from, to));
         setPreviewBlob(blob);
         download(blob, `raport-zadan_${stamp}.pdf`);
       }
@@ -212,9 +178,9 @@ export default function ReportPanel({ tasks }) {
       <form onSubmit={handleGenerate}>
         <h1>Raport zadań</h1>
         <label htmlFor="report-from">Od (termin):</label>
-        <DateInput id="report-from" value={from} onChange={setFrom} placeholder={formatDisplayDate(monthStart)} /><br /><br />
+        <DateInput id="report-from" value={from} onChange={setFrom} /><br /><br />
         <label htmlFor="report-to">Do (termin):</label>
-        <DateInput id="report-to" value={to} onChange={setTo} placeholder={formatDisplayDate(monthEnd)} /><br /><br />
+        <DateInput id="report-to" value={to} onChange={setTo} /><br /><br />
 
         <label>Priorytet:</label><br />
         {priorities.map((p) => (

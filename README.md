@@ -1,6 +1,6 @@
 # Aplikacja TODO — dokumentacja
 
-Stan dokumentacji: **16 października 2026 r.**
+Stan dokumentacji: **20 października 2026 r.**
 
 Aplikacja służy do zarządzania własnymi zadaniami i projektami. Frontend jest napisany w React, backend korzysta z Symfony 7.4 i PDO, a logowanie obsługuje Keycloak. Dane aplikacji znajdują się w MySQL, natomiast konta i konfiguracja Keycloak w osobnej bazie PostgreSQL.
 
@@ -34,6 +34,8 @@ Dokumentacja opisuje aktualne pliki repozytorium. Konfiguracja już działające
 
 Priorytety: **Niski**, **Normalny**, **Wysoki**. Statusy: **Do zrobienia**, **Realizowane**, **Wykonane**.
 
+W formularzach i na listach daty są wpisywane i wyświetlane w formacie `dd-MM-yyyy` (komponent `DateInput.jsx`, funkcje pomocnicze w `utils/date.js`). API przyjmuje format `YYYY-MM-DD`.
+
 <p align="center">
   <img src="docs/images/07-zadania-nowe-zadanie.png" alt="Formularz dodawania nowego zadania" width="800">
   <br>
@@ -48,7 +50,7 @@ Priorytety: **Niski**, **Normalny**, **Wysoki**. Statusy: **Do zrobienia**, **Re
 
 ### Kanban
 
-Widok `/kanban` pokazuje własne zadania w trzech kolumnach: **Do zrobienia** (czerwonej), **Realizowane** (żółtej), **Wykonane** (zielonej). Zmiana statusu jest dostępna wyłącznie przez select na karcie.
+Widok `/kanban` pokazuje własne zadania w trzech kolumnach: **Do zrobienia** (czerwonej), **Realizowane** (żółtej), **Wykonane** (zielonej). Zmiana statusu jest dostępna wyłącznie przez select na karcie. Widok jest zaimplementowany w `Kanban.jsx` (style w `Kanban.css`).
 
 Zmiana jest zapisywana automatycznie. W trakcie zapisu karta jest zablokowana, a błąd przywraca jej poprzedni status i wyświetla komunikat. Karty pokazują nazwę projektu, nazwę i opis zadania, termin oraz priorytet. Tablica korzysta z istniejących zadań i nie wymaga zmiany schematu bazy.
 
@@ -78,7 +80,7 @@ Backend sprawdza właściciela projektu. Usunięcie zadań i projektu odbywa si�
 
 Panel raportów znajduje się na stronie zadań. Umożliwia pobranie raportu **PDF** lub **CSV** oraz podgląd wygenerowanego PDF w przeglądarce.
 
-Raport zawiera nazwę zadania, projekt, termin, priorytet, status i opis. Zakres dat dotyczy **terminu zadania**, a nie daty jego utworzenia. Granice zakresu są włączone. Pusta granica nie ogranicza zakresu z tej strony. Zadania bez terminu są pomijane. Raport powstaje w przeglądarce na podstawie już pobranej listy zadań.
+Raport zawiera nazwę zadania, projekt, termin, priorytet, status i opis. Zakres dat dotyczy **terminu zadania**, a nie daty jego utworzenia. Granice zakresu są włączone. Pusta granica nie ogranicza zakresu z tej strony. Zadania bez terminu są pomijane. Raport powstaje w przeglądarce na podstawie już pobranej listy zadań. Logika filtrowania zadań do raportu znajduje się w `reportFilters.js` i jest objęta testem `reportFilters.test.js`.
 
 <p align="center">
   <img src="docs/images/08-zadania-raport.png" alt="Panel generowania raportu zadań" width="800">
@@ -137,12 +139,12 @@ Dokładne wersje zależności zapisane są w plikach `composer.lock` i `package-
 
 Adresy `/`, `/index` i `/index.html` przekierowują do `/tasks`. Adres `/usermenu` przekierowuje do `/panel`. Przekierowania React działają po zakończeniu logowania i ustanowieniu sesji aplikacji.
 
-Aktywnym komponentem aplikacji jest **`BffApp.jsx`**, importowany przez `main.jsx`. Plik `App.jsx` pozostaje w repozytorium, ale nie jest obecnym punktem wejścia interfejsu.
+Interfejs startuje w `main.jsx`, a widoki aplikacji obsługują `App.jsx` i `AuthenticatedApp.jsx` (ten drugi odpowiada za część dostępną po zalogowaniu). Dawny plik `BffApp.jsx` nie istnieje już w repozytorium.
 
 ## Logowanie, sesja i MFA
 
 1. `main.jsx` uruchamia klienta Keycloak w trybie `login-required` z PKCE S256.
-2. Po logowaniu `BffApp.jsx` przekazuje tokeny do `POST /auth/session`.
+2. Po logowaniu frontend przekazuje tokeny do `POST /auth/session`.
 3. Backend sprawdza token dostępu, token ID, zgodność użytkownika oraz wymaganie MFA. Rejestruje użytkownika w lokalnej bazie i odnawia identyfikator sesji.
 4. Tokeny są zapisywane w sesji backendu. Przeglądarka korzysta dalej z ciasteczka **`TODOSESSID`**, oznaczonego jako HttpOnly i SameSite=Lax.
 5. Odpowiedź sesji zawiera token CSRF. `api.js` dodaje go jako `X-CSRF-Token` do żądań zmieniających dane. Backend sprawdza również nagłówek `Origin`.
@@ -237,9 +239,9 @@ Compose ustawia wewnętrzny `KEYCLOAK_URL=http://keycloak:8080` oraz dane połą
 
 ### 2. Sprawdzenie montowania `db/init.sql`
 
-Aktualny Compose montuje `./db/init.sql` do `/docker-entrypoint-initdb.d/init.sql`. W obecnym katalogu roboczym **`db/init.sql` jest katalogiem, a nie plikiem SQL**.
+Repozytorium **nie zawiera pliku `db/init.sql`**. Jeśli `docker-compose.yml` nadal montuje `./db/init.sql` do `/docker-entrypoint-initdb.d/init.sql`, Docker może utworzyć w jego miejscu pusty katalog zamiast pliku SQL, co przeszkadza w inicjalizacji MySQL.
 
-Przed pierwszym uruchomieniem usuń tę linię montowania z własnej konfiguracji albo zastąp źródło rzeczywistym plikiem SQL. Backend potrafi sam utworzyć brakujące tabele, więc import danych nie jest do tego wymagany. Skrypty inicjalizacyjne obrazu MySQL dotyczą pierwszej inicjalizacji wolumenu, nie każdego restartu.
+Przed pierwszym uruchomieniem usuń tę linię montowania z własnej konfiguracji albo dodaj rzeczywisty plik SQL. Backend potrafi sam utworzyć brakujące tabele, więc import danych nie jest do tego wymagany. Skrypty inicjalizacyjne obrazu MySQL dotyczą pierwszej inicjalizacji wolumenu, nie każdego restartu.
 
 ### 3. Start
 
@@ -284,6 +286,8 @@ Compose importuje wyłącznie `keycloak/todo-app-realm.json`. `keycloak/realm-ex
 
 Importowany realm zawiera klienta aplikacji, role, przykładowe konta i konfigurację przepływów logowania. Nie oznacza to importu projektów i zadań do MySQL.
 
+Wygląd stron logowania zapewnia motyw `keycloak-themes/todo-theme` (komunikaty w języku polskim i angielskim oraz własne style). Skrypt PowerShell `keycloak/configure-otp-amr.ps1` służy do konfiguracji OTP/AMR w Keycloak.
+
 `start-dev --import-realm` nie aktualizuje automatycznie istniejącego realm. Zmiana pliku JSON i restart mogą więc nie zmienić logowania zapisanego w PostgreSQL. Istniejącą konfigurację należy aktualizować przez panel administratora lub Admin API, zachowując konta. Po usunięciu rozszerzenia Java trzeba osobno sprawdzić, czy zapisany przepływ nadal nie odwołuje się do brakującego providera.
 
 Zmiana nazwy użytkownika zależy również od ustawienia Keycloak **Realm settings → Login → Edit username**. Backend do edycji kont potrzebuje poprawnych danych administratora oraz jego uprawnień. Sprawdzanie obecnego hasła korzysta z klienta `admin-cli` w realm aplikacji i musi być zgodne z jego konfiguracją; dodatkowe wymagania OTP mogą wpływać na ten przepływ.
@@ -298,7 +302,10 @@ backend/
     bundles.php
     routes.yaml
     services.yaml
-    packages/framework.yaml
+    services_test.yaml
+    packages/
+      framework.yaml
+      test/framework.yaml
   src/
     Kernel.php
     Controller/
@@ -317,37 +324,75 @@ backend/
   public/
     index.php
     router.php
-  tests/integration.php
+    edittasks.php
+    index.php.old
+  tests/
+    integration.php
+    kanban_status.php
+  .dockerignore
+  .env.dist
   composer.json
   composer.lock
   Dockerfile
 frontend/
+  public/
+    favicon.svg
+    icons.svg
   src/
     main.jsx
-    BffApp.jsx
+    App.jsx
+    AuthenticatedApp.jsx
     api.js
     keycloak.js
     App.css
     index.css
+    theme.css
+    assets/
+    components/
+      DateInput.jsx
+      DateInput.css
     pages/
       Home.jsx
+      Kanban.jsx
+      Kanban.css
       Projects.jsx
+      Profile.jsx
       UserMenu.jsx
       UserMenu.css
       Users.jsx
       ReportPanel.jsx
+      reportFilters.js
+      reportFilters.test.js
+    utils/
+      date.js
   index.html
   nginx.conf
   vite.config.js
+  package.json
+  package-lock.json
+  .oxlintrc.json
   Dockerfile
 keycloak/
   todo-app-realm.json
   realm-export.json
+  configure-otp-amr.ps1
 keycloak-themes/
+  todo-theme/login/
+    messages/
+      messages_pl.properties
+      messages_en.properties
+    resources/css/styles.css
+    theme.properties
 docs/
   images/            # zrzuty ekranu używane w dokumentacji
 docker-compose.yml
 .env.example
+.gitignore
+composer.json
+composer.lock
+package.json
+package-lock.json
+server.js
 README.md
 ```
 
@@ -358,7 +403,7 @@ README.md
 - `ApiSubscriber` obsługuje CORS i błędy API.
 - `Schema` i `ConnectionFactory` obsługują inicjalizację bazy.
 
-Pliki `App.jsx`, `Profile.jsx` i `theme.css` pozostają w repozytorium, ale nie tworzą aktualnego głównego widoku uruchamianego przez `main.jsx`. Stare samodzielne endpointy `addtasks.php`, `showtasks.php`, `edittasks.php`, `deletetasks.php` i `addprojects.php` zostały zastąpione trasami Symfony.
+Pliki `Profile.jsx` i `theme.css` pozostają w repozytorium, ale nie tworzą aktualnego głównego widoku. Stare samodzielne endpointy `addtasks.php`, `showtasks.php`, `deletetasks.php` i `addprojects.php` zostały zastąpione trasami Symfony. W `backend/public/` pozostały jeszcze `edittasks.php` i `index.php.old`; nie są częścią obecnego API.
 
 ## Baza aplikacji
 
@@ -470,6 +515,8 @@ W repozytorium jest skrypt `backend/tests/integration.php` oparty na SQLite i za
 
 **Skrypt nadal wysyła token Bearer, a aktualne API używa sesji i CSRF.** Nie jest więc obecnie pełnym, dostosowanym testem aktualnego logowania. Może również zatrzymać się na brakujących zmiennych środowiskowych. Wcześniejszych wyników testów nie należy traktować jako potwierdzenia działania obecnej wersji uwierzytelniania.
 
+Po stronie frontendu istnieje test `frontend/src/pages/reportFilters.test.js`, który sprawdza logikę filtrów raportu (`reportFilters.js`). Sposób jego uruchamiania zależy od skryptów w `frontend/package.json`.
+
 ### Sprawdzenie ręczne
 
 1. Zaloguj się i przejdź wymagane MFA.
@@ -504,6 +551,6 @@ W repozytorium jest skrypt `backend/tests/integration.php` oparty na SQLite i za
 - Reset hasła przez email jest wyłączony w pliku importu realm.
 - Testy uwierzytelniania wymagają aktualizacji do sesji i CSRF.
 - PHP działa na serwerze deweloperskim, a Keycloak w trybie `start-dev`; to konfiguracja do pracy lokalnej.
-- Obecny `db/init.sql` wymaga uporządkowania przed inicjalizacją nowego środowiska.
+- Repozytorium nie zawiera pliku `db/init.sql`; montowanie go w `docker-compose.yml` wymaga uporządkowania przed inicjalizacją nowego środowiska.
 
 Przy tej aktualizacji dokumentacji nie uruchamiano pełnego środowiska Docker ani testu logowania na rzeczywistym Keycloak. Zmieniony został wyłącznie plik dokumentacji.
