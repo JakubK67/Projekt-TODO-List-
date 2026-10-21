@@ -2,6 +2,10 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import DateInput from '../components/DateInput';
 import { filterTasks } from './reportFilters';
+<<<<<<< HEAD
+=======
+import { formatDate as formatDisplayDate } from '../utils/date';
+>>>>>>> 56d13c157c480b9b447249feeca1880bb78e0918
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -23,6 +27,21 @@ const COLUMNS = [
 
 const STATUSES = ['Do zrobienia', 'W trakcie', 'Zakończone'];
 
+<<<<<<< HEAD
+=======
+const pad = (n) => String(n).padStart(2, '0');
+
+const formatDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+const getCurrentMonthRange = () => {
+  const now = new Date();
+  return [
+    formatDate(new Date(now.getFullYear(), now.getMonth(), 1)),
+    formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+  ];
+};
+
+>>>>>>> 56d13c157c480b9b447249feeca1880bb78e0918
 const toggleItem = (list, item) =>
   list.includes(item) ? list.filter((x) => x !== item) : [...list, item];
 
