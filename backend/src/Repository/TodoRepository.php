@@ -90,6 +90,46 @@ final class TodoRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function taskNotes(string $id, int $taskId): array
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('SELECT id, content, created, updated FROM task_notes WHERE task_id = ? ORDER BY created ASC, id ASC');
+        $stmt->execute([$taskId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function addTaskNote(string $id, int $taskId, string $content): array
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('INSERT INTO task_notes (task_id, content) VALUES (?, ?)');
+        $stmt->execute([$taskId, $content]);
+        return ['id' => (int) $this->pdo->lastInsertId(), 'content' => $content];
+    }
+
+    public function editTaskNote(string $id, int $taskId, int $noteId, string $content): void
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('UPDATE task_notes SET content = ? WHERE id = ? AND task_id = ?');
+        $stmt->execute([$content, $noteId, $taskId]);
+        if ($stmt->rowCount() === 0) {
+            $check = $this->pdo->prepare('SELECT id FROM task_notes WHERE id = ? AND task_id = ?');
+            $check->execute([$noteId, $taskId]);
+            if ($check->fetchColumn() === false) throw new NotFoundHttpException('Nie znaleziono notatki');
+        }
+    }
+
+    public function deleteTaskNote(string $id, int $taskId, int $noteId): void
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('DELETE FROM task_notes WHERE id = ? AND task_id = ?');
+        $stmt->execute([$noteId, $taskId]);
+        if ($stmt->rowCount() === 0) throw new NotFoundHttpException('Nie znaleziono notatki');
+    }
+
     public function addTask(string $id, array $task, ?int $projectId): array
     {
         $user = $this->user($id);

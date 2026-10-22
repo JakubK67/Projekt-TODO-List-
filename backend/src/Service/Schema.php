@@ -54,6 +54,18 @@ final class Schema
                 project_id INT DEFAULT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_polish_ci
         ");
+
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS task_notes (
+                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                task_id INT NOT NULL,
+                content TEXT NOT NULL,
+                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                KEY idx_task_notes_task_created (task_id, created),
+                CONSTRAINT fk_task_notes_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
     }
 
     private function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void {

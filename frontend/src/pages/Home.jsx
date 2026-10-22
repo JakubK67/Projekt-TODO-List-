@@ -21,6 +21,12 @@ export default function Home() {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState('');
   const [projectsError, setProjectsError] = useState('');
+  const [notesByTask, setNotesByTask] = useState({});
+  const [openNotes, setOpenNotes] = useState({});
+  const [noteDrafts, setNoteDrafts] = useState({});
+  const [editNoteDraft, setEditNoteDraft] = useState('');
+  const [editingNote, setEditingNote] = useState(null);
+  const [notesError, setNotesError] = useState({});
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -123,6 +129,51 @@ export default function Home() {
   }
 };
 
+  const toggleNotes = async (taskId) => {
+    if (openNotes[taskId]) {
+      setOpenNotes(previous => ({ ...previous, [taskId]: false }));
+      return;
+    }
+    setOpenNotes(previous => ({ ...previous, [taskId]: true }));
+    if (notesByTask[taskId]) return;
+    try {
+      const response = await axios.get(`${API_URL}/api/tasks/${taskId}/notes`);
+      setNotesByTask(previous => ({ ...previous, [taskId]: response.data }));
+    } catch (err) {
+      setNotesError(previous => ({ ...previous, [taskId]: err.response?.data?.error || 'Nie udało się pobrać notatek.' }));
+    }
+  };
+
+  const saveNote = async (event, taskId, noteId = null) => {
+    event.preventDefault();
+    const content = noteId ? editNoteDraft : noteDrafts[taskId] ?? '';
+    try {
+      if (noteId) {
+        await axios.put(`${API_URL}/api/tasks/${taskId}/notes/${noteId}`, { content });
+      } else {
+        await axios.post(`${API_URL}/api/tasks/${taskId}/notes`, { content });
+      }
+      const response = await axios.get(`${API_URL}/api/tasks/${taskId}/notes`);
+      setNotesByTask(previous => ({ ...previous, [taskId]: response.data }));
+      setNoteDrafts(previous => ({ ...previous, [taskId]: '' }));
+      setEditingNote(null);
+      setEditNoteDraft('');
+      setNotesError(previous => ({ ...previous, [taskId]: '' }));
+    } catch (err) {
+      setNotesError(previous => ({ ...previous, [taskId]: err.response?.data?.error || 'Nie udało się zapisać notatki.' }));
+    }
+  };
+
+  const deleteNote = async (taskId, noteId) => {
+    if (!window.confirm('Usunąć tę notatkę?')) return;
+    try {
+      await axios.delete(`${API_URL}/api/tasks/${taskId}/notes/${noteId}`);
+      setNotesByTask(previous => ({ ...previous, [taskId]: previous[taskId].filter(note => note.id !== noteId) }));
+    } catch (err) {
+      setNotesError(previous => ({ ...previous, [taskId]: err.response?.data?.error || 'Nie udało się usunąć notatki.' }));
+    }
+  };
+
 
 
   return (
@@ -223,6 +274,23 @@ export default function Home() {
                       <p>Priorytet: {t.priority}</p>
                       <p>Status: {t.status}</p>
                       <p>Opis: {t.description || 'Brak opisu'}</p>
+                      <section className="task-notes" aria-label={`Notatki do zadania: ${t.name}`}>
+                        <button className="task-notes-toggle" type="button" onClick={() => toggleNotes(t.id)}><span aria-hidden="true">✎</span>{openNotes[t.id] ? 'Ukryj notatki' : 'Notatki'}{notesByTask[t.id] ? <span className="task-notes-count">{notesByTask[t.id].length}</span> : null}</button>
+                        {openNotes[t.id] && <div className="task-notes-content">
+                          {(notesByTask[t.id] || []).map(note => <article className="task-note" key={note.id}>
+                            {editingNote === note.id ? <form onSubmit={event => saveNote(event, t.id, note.id)}>
+                              <textarea maxLength={21845} required value={editNoteDraft} onChange={event => setEditNoteDraft(event.target.value)} />
+                              <div className="task-note-actions"><button type="submit">Zapisz</button> <button className="task-note-secondary" type="button" onClick={() => { setEditingNote(null); setEditNoteDraft(''); }}>Anuluj</button></div>
+                            </form> : <><p>{note.content}</p><div className="task-note-actions"><button className="task-note-secondary" type="button" onClick={() => { setEditingNote(note.id); setEditNoteDraft(note.content); }}>Edytuj</button> <button className="task-note-danger" type="button" onClick={() => deleteNote(t.id, note.id)}>Usuń</button></div></>}
+                          </article>)}
+                          <form className="task-note-form" onSubmit={event => saveNote(event, t.id)}>
+                            <label htmlFor={`note-${t.id}`}>Dodaj notatkę</label>
+                            <textarea id={`note-${t.id}`} maxLength={21845} required value={noteDrafts[t.id] ?? ''} onChange={event => setNoteDrafts(previous => ({ ...previous, [t.id]: event.target.value }))} />
+                            <button type="submit">Dodaj notatkę</button>
+                          </form>
+                          {notesError[t.id] && <p role="alert">{notesError[t.id]}</p>}
+                        </div>}
+                      </section>
                       <button type="button" onClick={() => startEdit(t)}>Edytuj</button>
                       {' '}
                       <button type="button" onClick={() => handleDelete(t.id)}>Usuń</button>

@@ -278,6 +278,33 @@ main.content .project p {
   white-space: pre-wrap;
 }
 
+.task-notes { margin: 24px 0 20px; }
+main.content .task .task-notes-toggle {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 9px;
+  border-color: #c9d8cc;
+  border-radius: 999px;
+  background: #f4f8f2;
+  padding: 7px 15px;
+  color: var(--color-forest);
+}
+.task-notes-toggle > span:first-child { font-size: 1.05rem; }
+.task-notes-count { display: grid; min-width: 22px; height: 22px; place-items: center; border-radius: 50%; background: var(--color-forest); color: #fff; font-size: 0.75rem; }
+.task-notes-content { display: grid; gap: 12px; margin-top: 12px; padding: clamp(14px, 2.5vw, 20px); border: 1px solid #d8e3d8; border-radius: 18px; background: linear-gradient(145deg, #f9fbf7, #f0f5ee); }
+.task-notes-content > .task-note { margin: 0; padding: 14px 16px; border: 1px solid #e1e9e0; border-radius: 14px; background: #fffefa; box-shadow: 0 5px 14px rgb(31 59 45 / 5%); }
+.task-note p { margin: 0 0 12px; color: #34493d; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-notes-content .task-note-form { display: grid; gap: 8px; padding: 16px; border: 1px dashed #b9cdbb; border-radius: 14px; background: rgb(255 255 255 / 58%); }
+.task-notes-content .task-note-form label { margin: 0; font-size: 0.9rem; }
+.task-notes-content textarea { min-height: 92px; background: #fffefa; }
+.task-note-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+main.content .task .task-note-actions button { min-height: 35px; padding: 6px 12px; font-size: 0.86rem; }
+main.content .task .task-note-actions .task-note-secondary { border-color: #cbd8cd; background: #f6f8f3; color: #40584a; }
+main.content .task .task-note-actions .task-note-danger { border-color: #e6c9bd; background: #fff4ef; color: #8b4935; }
+main.content .task .task-note-actions .task-note-secondary:hover:not(:disabled) { background: #e9f0e8; }
+main.content .task .task-note-actions .task-note-danger:hover:not(:disabled) { border-color: #d9a996; background: #fce8df; }
+
 @media (max-width: 760px) {
   nav.nav {
     position: relative;
