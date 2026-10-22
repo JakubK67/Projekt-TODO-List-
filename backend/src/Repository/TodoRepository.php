@@ -90,6 +90,37 @@ final class TodoRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function ownStatistics(string $keycloakId): array
+    {
+        $user = $this->user($keycloakId);
+        if ($user['public_statistics_token'] === null) {
+            $stmt = $this->pdo->prepare('UPDATE users SET public_statistics_token = ? WHERE id = ? AND public_statistics_token IS NULL');
+            $stmt->execute([bin2hex(random_bytes(32)), $user['id']]);
+            $user = $this->user($keycloakId);
+        }
+        return $this->statisticsForUser($user) + ['publicToken' => $user['public_statistics_token']];
+    }
+
+    public function publicStatistics(string $token): array
+    {
+        $stmt = $this->pdo->prepare('SELECT id, username FROM users WHERE public_statistics_token = ?');
+        $stmt->execute([$token]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user) throw new NotFoundHttpException('Nie znaleziono statystyk');
+        return $this->statisticsForUser($user);
+    }
+
+    private function statisticsForUser(array $user): array
+    {
+        $stmt = $this->pdo->prepare('SELECT priority, COUNT(*) AS completed FROM tasks WHERE user_id = ? AND status = ? GROUP BY priority');
+        $stmt->execute([$user['id'], 'Wykonane']);
+        $counts = ['Niski' => 0, 'Normalny' => 0, 'Wysoki' => 0];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if (array_key_exists($row['priority'], $counts)) $counts[$row['priority']] = (int) $row['completed'];
+        }
+        return ['user' => ['username' => $user['username']], 'counts' => $counts];
+    }
+
     public function taskNotes(string $id, int $taskId): array
     {
         $user = $this->user($id);

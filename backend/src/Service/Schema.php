@@ -20,6 +20,7 @@ final class Schema
                 last_name   VARCHAR(100) NULL,
                 email       VARCHAR(255) NULL,
                 role        VARCHAR(20)  NOT NULL DEFAULT 'user',
+                public_statistics_token CHAR(64) NULL UNIQUE,
                 created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 last_login  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
@@ -28,6 +29,7 @@ final class Schema
         $this->ensureColumn($pdo, 'users', 'id', 'INT NOT NULL AUTO_INCREMENT UNIQUE FIRST');
         $this->ensureColumn($pdo, 'users', 'first_name', 'VARCHAR(100) NULL AFTER username');
         $this->ensureColumn($pdo, 'users', 'last_name', 'VARCHAR(100) NULL AFTER first_name');
+        $this->ensureColumn($pdo, 'users', 'public_statistics_token', 'CHAR(64) NULL UNIQUE');
         
         $pdo->exec("
             CREATE TABLE IF NOT EXISTS projects (

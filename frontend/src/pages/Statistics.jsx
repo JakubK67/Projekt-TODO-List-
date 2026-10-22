@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { apiFetch } from '../api';
-import { getStatistics, RANKS } from './statistics';
+import { getStatisticsFromCounts, RANKS } from './statistics.js';
 import './Statistics.css';
 
 function StatisticValue({ value }) {
@@ -28,8 +28,8 @@ function StatisticValue({ value }) {
   return <p className="statistics-value" ref={containerRef}><span ref={numberRef}>{value}</span></p>;
 }
 
-export default function Statistics() {
-  const [tasks, setTasks] = useState([]);
+export default function Statistics({ publicToken }) {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [rulesOpen, setRulesOpen] = useState(false);
@@ -44,26 +44,30 @@ export default function Statistics() {
       setLoading(true);
       setError('');
       try {
-        const response = await apiFetch('/api/tasks', { signal: controller.signal });
+        const response = publicToken
+          ? await fetch(`/api/public/statistics/${encodeURIComponent(publicToken)}`, { signal: controller.signal, credentials: 'omit' })
+          : await apiFetch('/api/statistics', { signal: controller.signal });
         const data = await response.json();
-        if (!response.ok || !Array.isArray(data)) throw new Error('Nie udało się pobrać statystyk.');
-        if (!controller.signal.aborted) setTasks(data);
-      } catch {
-        if (!controller.signal.aborted) setError('Nie udało się pobrać statystyk. Spróbuj ponownie.');
+        if (response.status === 404) throw new Error('Link do statystyk jest nieprawidłowy lub nieaktualny.');
+        if (!response.ok || !data.user || !data.counts) throw new Error('Nie udało się pobrać statystyk. Spróbuj ponownie.');
+        if (!controller.signal.aborted) setData(data);
+      } catch (err) {
+        if (!controller.signal.aborted) setError(err.message || 'Nie udało się pobrać statystyk. Spróbuj ponownie.');
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
     }
     load();
     return () => controller.abort();
-  }, []);
+  }, [publicToken]);
 
-  const stats = getStatistics(tasks);
+  const stats = getStatisticsFromCounts(data?.counts ?? {});
 
   return (
     <section className="statistics-page" aria-labelledby="statistics-title">
       <header className="statistics-heading">
-        <h1 id="statistics-title">Twoje statystyki</h1>
+        <h1 id="statistics-title">{publicToken ? `Statystyki${data ? `: ${data.user.username}` : ''}` : 'Twoje statystyki'}</h1>
+        {!publicToken && !loading && !error && data && <a href={`/statistics/${data.publicToken}`}>Publiczny podgląd</a>}
       </header>
       {loading ? <p role="status">Ładowanie statystyk…</p> : error ? <p role="alert">{error}</p> : (
         <>
@@ -77,7 +81,7 @@ export default function Statistics() {
               <StatisticValue value={stats.score} />
             </article>
             <article className="statistics-card statistics-rank" style={{ '--rank-color': stats.rank.color }}>
-              <h2>Twoja ranga</h2>
+              <h2>{publicToken ? 'Ranga użytkownika' : 'Twoja ranga'}</h2>
               <p className="statistics-rank-name">{stats.rank.name}</p>
               <progress value={stats.progress} max="100" aria-label="Postęp do kolejnej rangi" />
               <p>{stats.nextRank

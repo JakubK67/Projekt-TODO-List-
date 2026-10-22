@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getStatistics, RANKS } from './statistics.js';
+import { getStatistics, getStatisticsFromCounts, RANKS } from './statistics.js';
+
+test('public aggregate counts produce the same points and ranks as private tasks', () => {
+  const counts = { Niski: 2, Normalny: 3, Wysoki: 4 };
+  const tasks = Object.entries(counts).flatMap(([priority, count]) =>
+    Array.from({ length: count }, () => ({ priority, status: 'Wykonane' })));
+  const { total, ...privateStats } = getStatistics(tasks);
+  assert.equal(total, 9);
+  assert.deepEqual(getStatisticsFromCounts(counts), privateStats);
+  assert.equal(privateStats.score, 20);
+  assert.equal(privateStats.rank.name, 'Praktykant');
+});
 
 test('empty account starts with zero points and the first rank', () => {
   const stats = getStatistics([]);
