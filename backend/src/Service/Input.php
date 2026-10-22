@@ -27,7 +27,13 @@ final class Input
         }
         $value = trim($value);
         $length = preg_match_all('/./us', $value);
-        if ($length === false || $length > $max || ($required && $value === '')) {
+        if ($length === false || $length > $max) {
+            if ($field === 'description') {
+                throw new BadRequestHttpException('Opis może mieć maksymalnie 5000 znaków.');
+            }
+            throw new BadRequestHttpException('Nieprawidłowe lub zbyt długie pole: ' . $field);
+        }
+        if ($required && $value === '') {
             throw new BadRequestHttpException('Nieprawidłowe lub zbyt długie pole: ' . $field);
         }
         return $value;
@@ -43,6 +49,29 @@ final class Input
 
     public static function task(array $body): array
     {
+        $name = $body['name'] ?? null;
+        if (!is_string($name)) {
+            throw new BadRequestHttpException('Nazwa zadania jest wymagana.');
+        }
+        $name = trim($name);
+        if ($name === '') {
+            throw new BadRequestHttpException('Nazwa zadania nie może być pusta ani składać się wyłącznie z białych znaków.');
+        }
+        $nameLength = preg_match_all('/./us', $name);
+        if ($nameLength === false || $nameLength > 100) {
+            throw new BadRequestHttpException('Nazwa zadania nie może przekraczać 100 znaków.');
+        }
+
+        $description = $body['description'] ?? $body['desc'] ?? '';
+        if (!is_string($description)) {
+            throw new BadRequestHttpException('Opis zadania musi być tekstem.');
+        }
+        $description = trim($description);
+        $descriptionLength = preg_match_all('/./us', $description);
+        if ($descriptionLength === false || $descriptionLength > 5000) {
+            throw new BadRequestHttpException('Opis zadania może mieć maksymalnie 5000 znaków.');
+        }
+
         $deadline = $body['deadline'] ?? null;
         if ($deadline === '') $deadline = null;
         if ($deadline !== null) {
@@ -52,8 +81,8 @@ final class Input
             }
         }
         return [
-            'name' => self::text($body, 'name', 100, true),
-            'description' => self::text(['description' => $body['description'] ?? $body['desc'] ?? ''], 'description', 21845),
+            'name' => $name,
+            'description' => $description,
             'deadline' => $deadline,
             'priority' => self::choice($body['priority'] ?? 1, ['Niski', 'Normalny', 'Wysoki']),
             'status' => self::choice($body['status'] ?? 0, ['Do zrobienia', 'Realizowane', 'Wykonane']),

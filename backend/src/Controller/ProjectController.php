@@ -25,7 +25,7 @@ final class ProjectController
     {
         $token = $this->keycloak->authenticate($request);
         $body = Input::json($request);
-        $description = Input::text($body, 'description', 65535);
+        $description = Input::text($body, 'description', 5000);
         if (strlen($description) > 65535) throw new BadRequestHttpException('Zbyt długi opis projektu');
         return new JsonResponse($this->repository->addProject($token->sub, Input::text($body, 'name', 100, true), $description), 201);
     }
@@ -35,7 +35,7 @@ final class ProjectController
     {
         $token = $this->keycloak->authenticate($request);
         $body = Input::json($request);
-        $description = Input::text($body, 'description', 65535);
+        $description = Input::text($body, 'description', 5000);
         if (strlen($description) > 65535) throw new BadRequestHttpException('Zbyt długi opis projektu');
         return new JsonResponse($this->repository->editProject($token->sub, Input::id($id), Input::text($body, 'name', 100, true), $description));
     }

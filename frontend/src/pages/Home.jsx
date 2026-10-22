@@ -1,12 +1,17 @@
 import axios from 'axios';
 import '../api.js';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReportPanel from './ReportPanel';
 import DateInput from '../components/DateInput';
 import CalendarView from '../components/CalendarView';
 import { formatDate } from '../utils/date';
+import { MAX_DESCRIPTION_LENGTH, validateDescription, validateTaskName } from '../utils/validation';
 
 const API_URL = '';
+const requestErrorMessage = (error, fallback) => {
+  if (!error.response) return fallback;
+  return error.response.data?.error || error.response.data?.message || `Serwer zwrócił błąd HTTP ${error.response.status}.`;
+};
 const PRIORITIES = ['Niski', 'Normalny', 'Wysoki'];
 const STATUSES = ['Do zrobienia', 'Realizowane', 'Wykonane'];
 const VIEWS = [
@@ -25,7 +30,7 @@ const loadView = () => {
 
 export default function Home() {
   const [name, setName] = useState('');
-  const [desc, setDesc] = useState('');
+  const descriptionInput = useRef(null);
   const [priority, setPrior] = useState('0');
   const [deadline, setDl] = useState('');
   const [tasks, setTasks] = useState([]);
@@ -35,16 +40,13 @@ export default function Home() {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState('');
   const [projectsError, setProjectsError] = useState('');
-<<<<<<< HEAD
   const [notesByTask, setNotesByTask] = useState({});
   const [openNotes, setOpenNotes] = useState({});
   const [noteDrafts, setNoteDrafts] = useState({});
   const [editNoteDraft, setEditNoteDraft] = useState('');
   const [editingNote, setEditingNote] = useState(null);
   const [notesError, setNotesError] = useState({});
-=======
   const [view, setView] = useState(loadView);
->>>>>>> b33977f123e9c27bdbc7b397696fcea59151f76a
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -85,10 +87,16 @@ export default function Home() {
   const saveEdit = async (e, id) => {
     e.preventDefault();
     setEditError('');
+    const nameError = validateTaskName(editForm.name ?? '');
+    const descriptionError = validateDescription(editForm.description ?? '');
+    if (nameError || descriptionError) {
+      setEditError(nameError || descriptionError);
+      return;
+    }
     try {
       await axios.put(`${API_URL}/api/tasks/${id}`, {
         id,
-        name: editForm.name,
+        name: editForm.name.trim(),
         description: editForm.description,
         deadline: editForm.deadline,
         priority: PRIORITIES[editForm.priority],
@@ -132,20 +140,25 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
+    const nameError = validateTaskName(name);
+    const descriptionError = validateDescription(descriptionInput.current?.value ?? '');
+    if (nameError || descriptionError) {
+      setSubmitError(nameError || descriptionError);
+      return;
+    }
     try {
       await axios.post(
         `${API_URL}/api/tasks`,
-        { name, desc, priority, deadline, status, project_id: projectId === '' ? null : Number(projectId) },
+        { name: name.trim(), description: descriptionInput.current?.value ?? '', priority, deadline, status, project_id: projectId === '' ? null : Number(projectId) },
       );
       loadTasks();
     } catch (err) {
-      setSubmitError(err.response?.data?.error || 'Nie udało się dodać zadania. Sprawdź połączenie z backendem.');
+      setSubmitError(requestErrorMessage(err, 'Nie udało się połączyć z backendem.'));
       console.error(err);
     }
   };
 
   const handleDelete = async (id) => {
-<<<<<<< HEAD
   const task = tasks.find(item => item.id === id);
   if (!window.confirm(`Czy na pewno usunąć zadanie „${task?.name || 'Wybrane zadanie'}”? Tej operacji nie można cofnąć.`)) return;
   try {
@@ -203,26 +216,15 @@ export default function Home() {
   };
 
 
-=======
-    const task = tasks.find(item => item.id === id);
-    if (!window.confirm(`Czy na pewno usunąć zadanie „${task?.name || 'Wybrane zadanie'}”? Tej operacji nie można cofnąć.`)) return;
-    try {
-      await axios.delete(`${API_URL}/api/tasks/${id}`);
-      loadTasks();
-    } catch (err) {
-      setTasksError(err.response?.data?.error || 'Nie udało się usunąć zadania.');
-      console.error(err);
-    }
-  };
->>>>>>> b33977f123e9c27bdbc7b397696fcea59151f76a
 
   return (
     <>
             <div className="new-task">
                 <form onSubmit={handleSubmit}>
                     <h1>Nowe Zadanie</h1>
-                    <input type="text" name="nazwa" placeholder="Nazwa Zadania*" required onChange={(e) => setName(e.target.value)}></input>
-                    <textarea name="opis" placeholder="Opis" onChange={(e) => setDesc(e.target.value)}></textarea>
+                    <input type="text" name="nazwa" placeholder="Nazwa zadania* (maks. 100 znaków)" required maxLength={100} value={name} aria-invalid={Boolean(submitError && validateTaskName(name))} aria-describedby="add-task-name-error" onInvalid={() => setSubmitError('Wpisz nazwę zadania.')} onChange={(e) => { setName(e.target.value); setSubmitError(''); }} />
+                    {submitError && validateTaskName(name) && <p id="add-task-name-error" role="alert">{submitError}</p>}
+                    <textarea ref={descriptionInput} name="opis" placeholder={`Opis (maks. ${MAX_DESCRIPTION_LENGTH} znaków)`} maxLength={MAX_DESCRIPTION_LENGTH} />
                     <label htmlFor="add-project">Projekt:</label><br />
                     <select id="add-project" name="project_id" value={projectId} onChange={event => setProjectId(event.target.value)}>
                       <option value="">Brak</option>
@@ -250,7 +252,7 @@ export default function Home() {
                     <label htmlFor="termin">Termin*</label>
                     <DateInput name="termin" id="termin" required value={deadline} onChange={setDl} /><br /><br />
                     <button type="submit">Dodaj Zadanie</button>
-                    {submitError && <p role="alert">{submitError}</p>}
+                    {submitError && !validateTaskName(name) && <p role="alert">{submitError}</p>}
                     <p>* - Pola wymagane</p>
                 </form>
             </div>
@@ -283,9 +285,10 @@ export default function Home() {
                     <>
                       <form onSubmit={(e) => saveEdit(e, t.id)}>
                         <h1>Edytuj Zadanie</h1>
-                        <input type="text" name="name" placeholder="Nazwa Zadania*" required maxLength={100}
-                          value={editForm.name} onChange={handleEditChange} />
-                        <textarea name="description" placeholder="Opis"
+                        <input type="text" name="name" placeholder="Nazwa zadania* (maks. 100 znaków)" required maxLength={100}
+                          value={editForm.name} aria-invalid={Boolean(editError && validateTaskName(editForm.name ?? ''))} aria-describedby={`edit-task-name-error-${t.id}`} onInvalid={() => setEditError('Wpisz nazwę zadania.')} onChange={event => { handleEditChange(event); setEditError(''); }} />
+                        {editError && validateTaskName(editForm.name ?? '') && <p id={`edit-task-name-error-${t.id}`} role="alert">{editError}</p>}
+                        <textarea name="description" placeholder={`Opis (maks. ${MAX_DESCRIPTION_LENGTH} znaków)`} maxLength={MAX_DESCRIPTION_LENGTH}
                           value={editForm.description} onChange={handleEditChange}></textarea>
 
                         <label htmlFor={`edit-project-${t.id}`}>Projekt:</label><br />
@@ -322,7 +325,7 @@ export default function Home() {
                         <button type="submit">Zapisz</button>
                         {' '}
                         <button type="button" onClick={cancelEdit}>Anuluj</button>
-                        {editError && <p role="alert">{editError}</p>}
+                        {editError && !validateTaskName(editForm.name ?? '') && <p role="alert">{editError}</p>}
                         <p>* - Pola wymagane</p>
                       </form>
                     </>

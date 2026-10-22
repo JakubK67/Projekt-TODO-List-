@@ -384,6 +384,13 @@ main{
     box-shadow: none;
 }
 
+.tasks .task p,
+.projects .project p {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
 .tasks .task .task-notes-toggle:hover {
     background: #203b3b;
     transform: translateY(-1px);

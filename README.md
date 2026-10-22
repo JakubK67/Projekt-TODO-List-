@@ -509,13 +509,15 @@ Vite używa portu 3000 i przekazuje `/api` oraz `/auth` do `http://localhost:808
 
 ### Obecny stan testów
 
+Uruchom `npm test` z katalogu głównego, aby wykonać testy logiki frontendu, walidacji nazw i opisów, walidację backendu oraz produkcyjny build frontendu. Testy jednostkowe sprawdzają filtry raportów, statystyki, białe znaki, limity znaków i znaki Unicode. Wymagane są Node.js i PHP.
+
 `php backend/tests/kanban_status.php` sprawdza kontroler zmiany statusu i repozytorium na SQLite: dozwolone statusy, zachowanie pozostałych danych, błędne dane i kontrolę właściciela. Używa testowej tożsamości i nie zastępuje testu sesji ani logowania na rzeczywistym Keycloak.
 
 W repozytorium jest skrypt `backend/tests/integration.php` oparty na SQLite i zastępczym kliencie HTTP Keycloak. Obejmuje operacje zadań i projektów, kontrolę właściciela oraz wycofanie transakcji przy błędzie usuwania projektu.
 
 **Skrypt nadal wysyła token Bearer, a aktualne API używa sesji i CSRF.** Nie jest więc obecnie pełnym, dostosowanym testem aktualnego logowania. Może również zatrzymać się na brakujących zmiennych środowiskowych. Wcześniejszych wyników testów nie należy traktować jako potwierdzenia działania obecnej wersji uwierzytelniania.
 
-Po stronie frontendu istnieje test `frontend/src/pages/reportFilters.test.js`, który sprawdza logikę filtrów raportu (`reportFilters.js`). Sposób jego uruchamiania zależy od skryptów w `frontend/package.json`.
+Testy nie uruchamiają MySQL, Keycloak ani przeglądarki; te integracje nadal wymagają sprawdzenia osobno.
 
 ### Sprawdzenie ręczne
 
