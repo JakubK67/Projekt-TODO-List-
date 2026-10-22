@@ -1,0 +1,200 @@
+/* Przełącznik widoków (Lista / Kalendarz) */
+.view-switch {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 5% 0;
+}
+
+.view-switch button,
+.calendar button {
+  border: none;
+  background-color: darkslategray;
+  color: white;
+  font-weight: bold;
+  padding: 1vh 1vw;
+  font-size: large;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.view-switch button:hover:not(:disabled),
+.calendar button:hover {
+  background-color: rgb(23, 41, 41);
+}
+
+.view-switch button:disabled {
+  background-color: rgb(89, 114, 114);
+  cursor: default;
+}
+
+/* Kalendarz */
+.calendar {
+  border-radius: 25px;
+  background-color: rgb(255, 250, 240);
+  padding: 5%;
+  margin: 0 0 5% 0;
+  color: darkslategray;
+}
+
+.calendar-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.calendar-toolbar select,
+.calendar-toolbar input[type="number"] {
+  border-radius: 25px;
+  font-weight: bold;
+  border: 0.2vh solid darkslategray;
+  padding: 1vh;
+  background-color: white;
+  color: darkslategray;
+}
+
+.calendar-toolbar input[type="number"] {
+  width: 90px;
+}
+
+.calendar-title {
+  margin: 16px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-weight: bold;
+  padding: 4px 0;
+}
+
+.calendar-cell {
+  min-height: 100px;
+  padding: 6px;
+  border: 0.2vh solid rgba(47, 79, 79, 0.3);
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.calendar-cell:hover {
+  background: rgb(255, 245, 225);
+}
+
+.calendar-cell-empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.calendar-cell-empty:hover {
+  background: transparent;
+}
+
+.calendar-today {
+  border: 0.3vh solid darkslategray;
+}
+
+.calendar-selected,
+.calendar-selected:hover {
+  background: rgb(255, 240, 207);
+}
+
+.calendar-day-number {
+  font-weight: bold;
+}
+
+/* Zadania w komórkach – kolory zgodne z priorytetami na liście */
+.calendar .calendar-chip {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  border-radius: 8px;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar .calendar-chip:hover {
+  filter: brightness(0.92);
+}
+
+.calendar .chip-niski { background-color: rgb(195, 255, 105); }
+.calendar .chip-normalny { background-color: rgb(255, 255, 116); }
+.calendar .chip-wysoki { background-color: #ff5757; color: white; }
+
+.calendar-more {
+  font-size: 0.8em;
+  color: gray;
+}
+
+/* Szczegóły dnia i podgląd zadania */
+.calendar-details {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 0.2vh solid rgba(47, 79, 79, 0.3);
+}
+
+.calendar-details ul {
+  padding-left: 20px;
+}
+
+.calendar .calendar-task-link {
+  background: none;
+  padding: 2px 0;
+  color: darkslategray;
+  font-size: medium;
+  text-decoration: underline;
+  border-radius: 0;
+}
+
+.calendar .calendar-task-link:hover {
+  background: none;
+  color: rgb(89, 114, 114);
+}
+
+.calendar .calendar-task-link.active {
+  font-size: medium;
+}
+
+.calendar-preview {
+  margin-top: 16px;
+  padding: 5%;
+  border-radius: 25px;
+}
+
+.calendar-preview.chip-wysoki,
+.calendar-preview.chip-wysoki h4,
+.calendar-preview.chip-wysoki p {
+  color: white;
+}
+
+.calendar-preview h4 {
+  margin: 0 0 8px;
+}
+
+.calendar-preview p {
+  color: gray;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .calendar { padding: 16px; }
+  .calendar-cell { min-height: 70px; padding: 4px; }
+  .calendar .calendar-chip { font-size: 0.65em; }
+  .view-switch button,
+  .calendar button { padding: 1vh 3vw; }
+}

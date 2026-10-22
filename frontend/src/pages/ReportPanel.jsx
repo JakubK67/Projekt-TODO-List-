@@ -1,7 +1,18 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+﻿import { useState, useRef, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import DateInput from '../components/DateInput';
+<<<<<<< HEAD
+import { formatDate as formatDisplayDate } from '../utils/date';
+=======
 import { filterTasks } from './reportFilters';
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+import { formatDate as formatDisplayDate } from '../utils/date';
+>>>>>>> 56d13c157c480b9b447249feeca1880bb78e0918
+>>>>>>> f7a16cb86560355e85b07b478a8e94d90525116e
+>>>>>>> b33977f123e9c27bdbc7b397696fcea59151f76a
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -34,6 +45,24 @@ const getCurrentMonthRange = () => {
     formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
   ];
 };
+<<<<<<< HEAD
+=======
+
+<<<<<<< HEAD
+const filterTasks = (tasks, from, to, excludedPriorities, excludedStatuses) =>
+  tasks.filter((t) => {
+    if (!t.deadline) return false;
+    if (from && t.deadline < from) return false;
+    if (to && t.deadline > to) return false;
+    if (excludedPriorities.includes(t.priority)) return false;
+    if (excludedStatuses.includes(t.status)) return false;
+    return true;
+  });
+
+=======
+>>>>>>> 56d13c157c480b9b447249feeca1880bb78e0918
+>>>>>>> f7a16cb86560355e85b07b478a8e94d90525116e
+>>>>>>> b33977f123e9c27bdbc7b397696fcea59151f76a
 const toggleItem = (list, item) =>
   list.includes(item) ? list.filter((x) => x !== item) : [...list, item];
 
