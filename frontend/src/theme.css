@@ -168,7 +168,37 @@ main.content .card {
 main.content .project,
 main.content .task {
   padding: clamp(18px, 3vw, 28px);
+  box-sizing: border-box;
+  min-width: 0;
   overflow-wrap: anywhere;
+}
+
+main.content .task h2,
+main.content .task h3,
+main.content .task p {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+main.content .projects .project {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 3vw, 36px);
+}
+
+main.content .projects .project-half {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+main.content .projects .project h3,
+main.content .projects .project p,
+main.content .projects .project li {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 main.content .task.priority-niski {
