@@ -1,7 +1,32 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { apiFetch } from '../api';
+import StatisticsQr from '../components/StatisticsQr.jsx';
 import { getStatisticsFromCounts, RANKS } from './statistics.js';
 import './Statistics.css';
+
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch {}
+  const previousFocus = document.activeElement;
+  const input = document.createElement('textarea');
+  input.value = text;
+  input.readOnly = true;
+  input.style.position = 'fixed';
+  input.style.left = '-9999px';
+  document.body.appendChild(input);
+  try {
+    input.select();
+    input.setSelectionRange(0, text.length);
+    if (!document.execCommand('copy')) throw new Error('Nie udało się skopiować linku.');
+  } finally {
+    input.remove();
+    previousFocus?.focus();
+  }
+}
 
 function StatisticValue({ value }) {
   const containerRef = useRef(null);
@@ -33,6 +58,22 @@ export default function Statistics({ publicToken }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [copyError, setCopyError] = useState('');
+  const [copying, setCopying] = useState(false);
+
+  async function copyLink() {
+    setCopying(true);
+    setCopyError('');
+    try {
+      const url = new URL(`/statistics/${encodeURIComponent(data.publicToken)}`, window.location.origin).href;
+      await copyToClipboard(url);
+    } catch {
+      setCopyError('Nie udało się skopiować linku. Sprawdź uprawnienia przeglądarki i spróbuj ponownie.');
+    } finally {
+      setCopying(false);
+    }
+  }
 
   useEffect(() => {
     document.title = 'Statystyki';
@@ -67,10 +108,15 @@ export default function Statistics({ publicToken }) {
     <section className="statistics-page" aria-labelledby="statistics-title">
       <header className="statistics-heading">
         <h1 id="statistics-title">{publicToken ? `Statystyki${data ? `: ${data.user.username}` : ''}` : 'Twoje statystyki'}</h1>
-        {!publicToken && !loading && !error && data && <a href={`/statistics/${data.publicToken}`}>Publiczny podgląd</a>}
+        {!publicToken && !loading && !error && data && (
+          <button type="button" aria-expanded={qrOpen} aria-controls="statistics-qr" onClick={() => setQrOpen(open => !open)}>
+            Udostępnij
+          </button>
+        )}
       </header>
       {loading ? <p role="status">Ładowanie statystyk…</p> : error ? <p role="alert">{error}</p> : (
         <>
+          {!publicToken && qrOpen && data && <StatisticsQr key={data.publicToken} token={data.publicToken} onCopy={copyLink} copying={copying} copyError={copyError} />}
           <div className="statistics-summary">
             <article className="statistics-card statistics-counter">
               <h2>Wykonane zadania</h2>
