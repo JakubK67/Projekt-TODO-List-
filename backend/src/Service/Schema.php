@@ -83,7 +83,7 @@ final class Schema
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
         ");
     }
-    }
+    
 
     private function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void {
         $stmt = $pdo->prepare("
