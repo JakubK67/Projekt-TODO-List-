@@ -66,4 +66,36 @@ final class TaskController
         $this->repository->deleteTask($token->sub, $taskId);
         return new JsonResponse(['ok' => true, 'deleted' => 1]);
     }
+
+    #[Route('/api/tasks/{id}/notes', name: 'task_notes_list', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function notes(Request $request, string $id): JsonResponse
+    {
+        $token = $this->keycloak->authenticate($request);
+        return new JsonResponse($this->repository->taskNotes($token->sub, Input::id($id)));
+    }
+
+    #[Route('/api/tasks/{id}/notes', name: 'task_notes_add', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function addNote(Request $request, string $id): JsonResponse
+    {
+        $token = $this->keycloak->authenticate($request);
+        $content = Input::text(Input::json($request), 'content', 21845, true);
+        return new JsonResponse($this->repository->addTaskNote($token->sub, Input::id($id), $content), 201);
+    }
+
+    #[Route('/api/tasks/{id}/notes/{noteId}', name: 'task_notes_edit', requirements: ['id' => '\\d+', 'noteId' => '\\d+'], methods: ['PUT'])]
+    public function editNote(Request $request, string $id, string $noteId): JsonResponse
+    {
+        $token = $this->keycloak->authenticate($request);
+        $content = Input::text(Input::json($request), 'content', 21845, true);
+        $this->repository->editTaskNote($token->sub, Input::id($id), Input::id($noteId), $content);
+        return new JsonResponse(['ok' => true]);
+    }
+
+    #[Route('/api/tasks/{id}/notes/{noteId}', name: 'task_notes_delete', requirements: ['id' => '\\d+', 'noteId' => '\\d+'], methods: ['DELETE'])]
+    public function deleteNote(Request $request, string $id, string $noteId): JsonResponse
+    {
+        $token = $this->keycloak->authenticate($request);
+        $this->repository->deleteTaskNote($token->sub, Input::id($id), Input::id($noteId));
+        return new JsonResponse(['ok' => true]);
+    }
 }

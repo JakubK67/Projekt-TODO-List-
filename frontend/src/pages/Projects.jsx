@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PieChart, Pie, Tooltip, Legend } from 'recharts';
 
 import { apiFetch } from '../api.js';
+import { MAX_DESCRIPTION_LENGTH, validateDescription } from '../utils/validation';
 
 const API_URL = '';
 const STATUSES = ['Do zrobienia', 'Realizowane', 'Wykonane'];
@@ -41,7 +42,7 @@ function ProjectStatusChart({ tasks }) {
 export default function Projects() {
   const [projekty, setProjekty] = useState([]);
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const descriptionInput = useRef(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -94,16 +95,21 @@ export default function Projects() {
     event.preventDefault();
     if (saving) return;
     setError('');
+    const descriptionError = validateDescription(descriptionInput.current?.value ?? '');
+    if (descriptionError) {
+      setError(descriptionError);
+      return;
+    }
     setSaving(true);
     try {
       const response = await apiFetch(`${API_URL}/api/projects`, {
         method: 'POST',
-        body: JSON.stringify({ name, description }),
+        body: JSON.stringify({ name, description: descriptionInput.current?.value ?? '' }),
       });
       const project = await readResponse(response);
       setProjekty(previous => [...previous, project]);
       setName('');
-      setDescription('');
+      if (descriptionInput.current) descriptionInput.current.value = '';
     } catch (err) {
       setError(err.message);
     } finally {
@@ -120,6 +126,11 @@ export default function Projects() {
   const saveProject = async event => {
     event.preventDefault();
     if (busyId !== null) return;
+    const descriptionError = validateDescription(editForm.description ?? '');
+    if (descriptionError) {
+      setActionError(descriptionError);
+      return;
+    }
     setBusyId(editingId);
     setActionError('');
     try {
@@ -160,8 +171,8 @@ export default function Projects() {
       <div className="new-task">
         <form onSubmit={handleSubmit}>
           <h1>Nowy Projekt</h1>
-          <input type="text" name="nazwa" aria-label="Nazwa projektu" placeholder="Nazwa Projektu*" required maxLength={100} value={name} onChange={event => setName(event.target.value)} />
-          <textarea name="opis" aria-label="Opis projektu" placeholder="Opis projektu" value={description} onChange={event => setDescription(event.target.value)} />
+          <input type="text" name="nazwa" aria-label="Nazwa projektu" placeholder="Nazwa projektu* (maks. 100 znaków)" required maxLength={100} value={name} onChange={event => setName(event.target.value)} />
+          <textarea ref={descriptionInput} name="opis" aria-label="Opis projektu" placeholder={`Opis projektu (maks. ${MAX_DESCRIPTION_LENGTH} znaków)`} maxLength={MAX_DESCRIPTION_LENGTH} />
           <button type="submit" disabled={saving || loading}>{saving ? 'Dodawanie…' : 'Dodaj Projekt'}</button>
           {error && <p role="alert">{error}</p>}
           <p>* - Pola wymagane</p>
@@ -181,9 +192,9 @@ export default function Projects() {
                   <form onSubmit={saveProject}>
                     <h3>Edytuj projekt</h3>
                     <label htmlFor={`project-name-${project.id}`}>Nazwa projektu*</label>
-                    <input id={`project-name-${project.id}`} type="text" required maxLength={100} value={editForm.name} onChange={event => setEditForm({ ...editForm, name: event.target.value })} />
+                    <input id={`project-name-${project.id}`} type="text" placeholder="Nazwa projektu* (maks. 100 znaków)" required maxLength={100} value={editForm.name} onChange={event => setEditForm({ ...editForm, name: event.target.value })} />
                     <label htmlFor={`project-description-${project.id}`}>Opis</label>
-                    <textarea id={`project-description-${project.id}`} value={editForm.description} onChange={event => setEditForm({ ...editForm, description: event.target.value })} />
+                    <textarea id={`project-description-${project.id}`} placeholder={`Opis projektu (maks. ${MAX_DESCRIPTION_LENGTH} znaków)`} maxLength={MAX_DESCRIPTION_LENGTH} value={editForm.description} onChange={event => setEditForm({ ...editForm, description: event.target.value })} />
                     <button type="submit" disabled={busyId !== null}>{busyId === project.id ? 'Zapisywanie…' : 'Zapisz'}</button>{' '}
                     <button type="button" disabled={busyId !== null} onClick={() => setEditingId(null)}>Anuluj</button>
                   </form>

@@ -20,6 +20,7 @@ final class Schema
                 last_name   VARCHAR(100) NULL,
                 email       VARCHAR(255) NULL,
                 role        VARCHAR(20)  NOT NULL DEFAULT 'user',
+                public_statistics_token CHAR(64) NULL UNIQUE,
                 created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 last_login  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
@@ -28,6 +29,7 @@ final class Schema
         $this->ensureColumn($pdo, 'users', 'id', 'INT NOT NULL AUTO_INCREMENT UNIQUE FIRST');
         $this->ensureColumn($pdo, 'users', 'first_name', 'VARCHAR(100) NULL AFTER username');
         $this->ensureColumn($pdo, 'users', 'last_name', 'VARCHAR(100) NULL AFTER first_name');
+        $this->ensureColumn($pdo, 'users', 'public_statistics_token', 'CHAR(64) NULL UNIQUE');
         
         $pdo->exec("
             CREATE TABLE IF NOT EXISTS projects (
@@ -56,6 +58,18 @@ final class Schema
         ");
 
         $pdo->exec("
+            CREATE TABLE IF NOT EXISTS task_notes (
+                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                task_id INT NOT NULL,
+                content TEXT NOT NULL,
+                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                KEY idx_task_notes_task_created (task_id, created),
+                CONSTRAINT fk_task_notes_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+
+        $pdo->exec("
             CREATE TABLE IF NOT EXISTS task_files (
                 id            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 task_id       INT NOT NULL,
@@ -68,6 +82,7 @@ final class Schema
                 CONSTRAINT task_files_ibfk_1 FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
         ");
+    }
     }
 
     private function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void {

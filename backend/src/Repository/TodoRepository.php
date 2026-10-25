@@ -90,6 +90,77 @@ final class TodoRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function ownStatistics(string $keycloakId): array
+    {
+        $user = $this->user($keycloakId);
+        if ($user['public_statistics_token'] === null) {
+            $stmt = $this->pdo->prepare('UPDATE users SET public_statistics_token = ? WHERE id = ? AND public_statistics_token IS NULL');
+            $stmt->execute([bin2hex(random_bytes(32)), $user['id']]);
+            $user = $this->user($keycloakId);
+        }
+        return $this->statisticsForUser($user) + ['publicToken' => $user['public_statistics_token']];
+    }
+
+    public function publicStatistics(string $token): array
+    {
+        $stmt = $this->pdo->prepare('SELECT id, username FROM users WHERE public_statistics_token = ?');
+        $stmt->execute([$token]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user) throw new NotFoundHttpException('Nie znaleziono statystyk');
+        return $this->statisticsForUser($user);
+    }
+
+    private function statisticsForUser(array $user): array
+    {
+        $stmt = $this->pdo->prepare('SELECT priority, COUNT(*) AS completed FROM tasks WHERE user_id = ? AND status = ? GROUP BY priority');
+        $stmt->execute([$user['id'], 'Wykonane']);
+        $counts = ['Niski' => 0, 'Normalny' => 0, 'Wysoki' => 0];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if (array_key_exists($row['priority'], $counts)) $counts[$row['priority']] = (int) $row['completed'];
+        }
+        return ['user' => ['username' => $user['username']], 'counts' => $counts];
+    }
+
+    public function taskNotes(string $id, int $taskId): array
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('SELECT id, content, created, updated FROM task_notes WHERE task_id = ? ORDER BY created ASC, id ASC');
+        $stmt->execute([$taskId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function addTaskNote(string $id, int $taskId, string $content): array
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('INSERT INTO task_notes (task_id, content) VALUES (?, ?)');
+        $stmt->execute([$taskId, $content]);
+        return ['id' => (int) $this->pdo->lastInsertId(), 'content' => $content];
+    }
+
+    public function editTaskNote(string $id, int $taskId, int $noteId, string $content): void
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('UPDATE task_notes SET content = ? WHERE id = ? AND task_id = ?');
+        $stmt->execute([$content, $noteId, $taskId]);
+        if ($stmt->rowCount() === 0) {
+            $check = $this->pdo->prepare('SELECT id FROM task_notes WHERE id = ? AND task_id = ?');
+            $check->execute([$noteId, $taskId]);
+            if ($check->fetchColumn() === false) throw new NotFoundHttpException('Nie znaleziono notatki');
+        }
+    }
+
+    public function deleteTaskNote(string $id, int $taskId, int $noteId): void
+    {
+        $user = $this->user($id);
+        $this->checkTask((int) $user['id'], $taskId);
+        $stmt = $this->pdo->prepare('DELETE FROM task_notes WHERE id = ? AND task_id = ?');
+        $stmt->execute([$noteId, $taskId]);
+        if ($stmt->rowCount() === 0) throw new NotFoundHttpException('Nie znaleziono notatki');
+    }
+
     public function addTask(string $id, array $task, ?int $projectId): array
     {
         $user = $this->user($id);
