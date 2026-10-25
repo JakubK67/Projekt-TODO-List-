@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import ReportPanel from './ReportPanel';
 import DateInput from '../components/DateInput';
 import CalendarView from '../components/CalendarView';
+import TaskFiles from '../components/TaskFiles';
 import { formatDate } from '../utils/date';
 
 const API_URL = '';
@@ -268,6 +269,7 @@ export default function Home() {
                       <button type="button" onClick={() => startEdit(t)}>Edytuj</button>
                       {' '}
                       <button type="button" onClick={() => handleDelete(t.id)}>Usuń</button>
+                      <TaskFiles taskId={t.id} />
                     </>
                   )}
                 </div>

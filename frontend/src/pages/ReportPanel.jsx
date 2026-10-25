@@ -2,9 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import DateInput from '../components/DateInput';
 import { formatDate as formatDisplayDate } from '../utils/date';
-
 import { filterTasks } from './reportFilters';
-import { formatDate as formatDisplayDate } from '../utils/date';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -38,16 +36,6 @@ const getCurrentMonthRange = () => {
   ];
 };
 
-
-const filterTasks = (tasks, from, to, excludedPriorities, excludedStatuses) =>
-  tasks.filter((t) => {
-    if (!t.deadline) return false;
-    if (from && t.deadline < from) return false;
-    if (to && t.deadline > to) return false;
-    if (excludedPriorities.includes(t.priority)) return false;
-    if (excludedStatuses.includes(t.status)) return false;
-    return true;
-  });
 
 const toggleItem = (list, item) =>
   list.includes(item) ? list.filter((x) => x !== item) : [...list, item];

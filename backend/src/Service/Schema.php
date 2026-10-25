@@ -54,6 +54,20 @@ final class Schema
                 project_id INT DEFAULT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_polish_ci
         ");
+
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS task_files (
+                id            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                task_id       INT NOT NULL,
+                original_name VARCHAR(255) NOT NULL,
+                stored_name   VARCHAR(64)  NOT NULL UNIQUE,
+                mime_type     VARCHAR(100) NOT NULL,
+                size          INT UNSIGNED NOT NULL,
+                created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                KEY task_id (task_id),
+                CONSTRAINT task_files_ibfk_1 FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+        ");
     }
 
     private function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void {
