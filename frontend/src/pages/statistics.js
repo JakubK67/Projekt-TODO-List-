@@ -14,8 +14,15 @@ export const RANKS = [
 
 export function getStatistics(tasks) {
   const completed = tasks.filter(task => task.status === 'Wykonane');
+  const counts = Object.fromEntries(PRIORITIES.map(priority => [
+    priority.name, completed.filter(task => task.priority === priority.name).length,
+  ]));
+  return { ...getStatisticsFromCounts(counts), total: tasks.length, completed: completed.length };
+}
+
+export function getStatisticsFromCounts(counts) {
   const priorities = PRIORITIES.map(priority => {
-    const count = completed.filter(task => task.priority === priority.name).length;
+    const count = counts[priority.name] ?? 0;
     return { ...priority, count, score: count * priority.points };
   });
   const score = priorities.reduce((total, priority) => total + priority.score, 0);
@@ -25,5 +32,6 @@ export function getStatistics(tasks) {
   const progress = nextRank
     ? Math.floor((score - rank.threshold) / (nextRank.threshold - rank.threshold) * 100)
     : 100;
-  return { total: tasks.length, completed: completed.length, priorities, score, rank, nextRank, progress };
+  const completed = priorities.reduce((total, priority) => total + priority.count, 0);
+  return { completed, priorities, score, rank, nextRank, progress };
 }

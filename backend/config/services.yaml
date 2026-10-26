@@ -31,3 +31,6 @@ services:
     App\Controller\AuthController:
         arguments:
             $frontendOrigin: '%env(FRONTEND_ORIGIN)%'
+    App\Service\TaskFiles:
+        arguments:
+            $storageDir: '%kernel.project_dir%/var/task_files'

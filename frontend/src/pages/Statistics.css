@@ -1,10 +1,17 @@
 .statistics-page { width: min(1100px, 100%); margin: 0 auto; padding: 28px 16px; color: #203b3b; }
+nav.nav .public-statistics-login { display: inline-flex; align-items: center; padding: 8px 16px; color: #fff; text-decoration: none; font-family: monospace; font-size: large; font-weight: bold; }
 .statistics-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
 .statistics-heading h1 { margin: 0; }
-.statistics-heading button { padding: 10px 18px; border: 1px solid #2f4f4f; border-radius: 8px; background: #2f4f4f; color: white; cursor: pointer; }
-.statistics-heading button:hover:not(:disabled) { background: #456b64; }
-.statistics-heading button:disabled { opacity: 0.6; cursor: wait; }
-.statistics-heading button:focus-visible { outline: 3px solid #789c87; outline-offset: 3px; }
+.statistics-share-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; }
+.statistics-qr { text-align: center; }
+.statistics-qr-image { display: block; width: min(256px, 100%); height: auto; margin: 20px auto; background: white; }
+.statistics-qr-download { display: inline-block; padding: 12px 18px; border-radius: 8px; background: #2f4f4f; color: white; text-decoration: none; }
+.statistics-qr-download:hover { background: #456b64; }
+.statistics-qr-download:focus-visible { outline: 3px solid #789c87; outline-offset: 3px; }
+.statistics-heading button, .statistics-qr button { padding: 10px 18px; border: 1px solid #2f4f4f; border-radius: 8px; background: #2f4f4f; color: white; cursor: pointer; }
+.statistics-heading button:hover:not(:disabled), .statistics-qr button:hover:not(:disabled) { background: #456b64; }
+.statistics-heading button:disabled, .statistics-qr button:disabled { opacity: 0.6; cursor: wait; }
+.statistics-heading button:focus-visible, .statistics-qr button:focus-visible { outline: 3px solid #789c87; outline-offset: 3px; }
 .statistics-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .statistics-card { min-width: 0; padding: 24px; margin-bottom: 20px; border: 1px solid #d3ddd4; border-radius: 14px; background: #fffaf0; }
 .statistics-card h2 { margin: 0 0 16px; font-size: 1.15rem; }

@@ -357,6 +357,10 @@ main{
     }
 }
 
+.task-files__item{
+    margin-bottom: 2vh;
+}
+
 .project-delete-editing {
     margin-top: 20px;
 }

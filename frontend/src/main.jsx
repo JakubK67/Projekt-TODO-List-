@@ -1,16 +1,24 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import AuthenticatedApp from "./AuthenticatedApp.jsx";
-import keycloak from "./keycloak";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import PublicStatistics from "./pages/PublicStatistics.jsx";
 import "./index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
-keycloak
-  .init({ onLoad: "login-required", pkceMethod: "S256" })
-  .then((authenticated) => {
-    if (authenticated) {
+if (/^\/statistics\/[^/]+\/?$/.test(window.location.pathname)) {
+  root.render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <Routes><Route path="/statistics/:token" element={<PublicStatistics />} /></Routes>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+} else {
+  Promise.all([import('./AuthenticatedApp.jsx'), import('./keycloak')])
+    .then(async ([{ default: AuthenticatedApp }, { default: keycloak }]) => {
+      const authenticated = await keycloak.init({ onLoad: "login-required", pkceMethod: "S256" });
+      if (!authenticated) return;
       root.render(
         <React.StrictMode>
           <BrowserRouter>
@@ -18,9 +26,9 @@ keycloak
           </BrowserRouter>
         </React.StrictMode>
       );
-    }
-  })
-  .catch((err) => {
-    console.error("Keycloak init error:", err);
-    root.render(<p>Nie udało się połączyć z Keycloakiem.</p>);
-  });
+    })
+    .catch((err) => {
+      console.error("Keycloak init error:", err);
+      root.render(<p>Nie udało się połączyć z Keycloakiem.</p>);
+    });
+}
