@@ -74,8 +74,7 @@ export default function TasksScreen({ navigation }: Props) {
               <AppButton label="Spróbuj ponownie" secondary disabled={loading} onPress={() => { void load(new AbortController().signal); }} /></View> : null}
             <View style={styles.titleRow}>
               <View style={styles.titleCopy}>
-                <Text style={styles.title}>Zadania pod kontrolą</Text>
-                <Text style={styles.subtitle}>Znajdź chwilę na to, co ważne.</Text>
+                <Text style={styles.title}>Lista zadań</Text>
               </View>
               <View style={styles.count}><Text style={styles.countText}>{loading && source.length === 0 ? '…' : source.length}</Text></View>
             </View>
