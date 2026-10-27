@@ -44,8 +44,8 @@ export default function TasksScreen({ navigation }: Props) {
         ListHeaderComponent={
           <View style={styles.heading}>
             {demo ? <DemoNotice /> : <Text style={styles.welcome}>Witaj, {user?.username}</Text>}
-            {error && <View style={styles.errorBox}><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
-              <AppButton label="Spróbuj ponownie" secondary disabled={loading} onPress={() => { void load(new AbortController().signal); }} /></View>}
+            {error ? <View style={styles.errorBox}><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
+              <AppButton label="Spróbuj ponownie" secondary disabled={loading} onPress={() => { void load(new AbortController().signal); }} /></View> : null}
             <View style={styles.titleRow}>
               <View style={styles.titleCopy}>
                 <Text style={styles.title}>Zadania pod kontrolą</Text>
@@ -68,7 +68,7 @@ export default function TasksScreen({ navigation }: Props) {
         renderItem={({ item }) => (
           <View style={[styles.card, { borderLeftColor: statusColors[item.status] }]}>
             <Text style={[styles.status, { color: statusColors[item.status] }]}>{item.status}</Text>
-            {item.project_name && <Text style={styles.label}>{item.project_name}</Text>}
+            {item.project_name ? <Text style={styles.label}>{item.project_name}</Text> : null}
             <Text style={styles.taskName}>{item.name}</Text>
             <Text style={styles.description}>{item.description}</Text>
             <View style={styles.details}>
