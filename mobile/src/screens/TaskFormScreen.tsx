@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
 import { colors } from '../theme';
+import { displayDate } from '../utils/tasks';
 import { PRIORITIES, STATUSES, type RootStackParamList, type Task } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskForm'>;
@@ -13,7 +14,7 @@ export default function TaskFormScreen({ navigation, route }: Props) {
   const task = route.params?.task;
   const [name, setName] = useState(task?.name ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
-  const [deadline, setDeadline] = useState(task?.deadline ?? '');
+  const [deadline, setDeadline] = useState(displayDate(task?.deadline ?? ''));
   const [priority, setPriority] = useState<Task['priority']>(task?.priority ?? 'Normalny');
   const [status, setStatus] = useState<Task['status']>(task?.status ?? 'Do zrobienia');
 

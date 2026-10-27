@@ -8,6 +8,8 @@ export type Task = {
   deadline: string;
   priority: typeof PRIORITIES[number];
   status: typeof STATUSES[number];
+  project_id?: number | null;
+  project_name?: string | null;
 };
 
 export type RootStackParamList = {

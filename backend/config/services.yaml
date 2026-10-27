@@ -1,3 +1,7 @@
+parameters:
+    mobile_client_id: 'todo-mobile'
+    mobile_issuer: ''
+    mobile_web_origins: 'http://localhost:3030,http://127.0.0.1:3030'
 services:
     _defaults:
         autowire: true
@@ -25,9 +29,12 @@ services:
             $adminPassword: '%env(KEYCLOAK_ADMIN_PASSWORD)%'
             $mfaAcrValues: '%env(KEYCLOAK_MFA_ACR_VALUES)%'
             $frontendOrigin: '%env(FRONTEND_ORIGIN)%'
+            $mobileClientId: '%env(default:mobile_client_id:KEYCLOAK_MOBILE_CLIENT_ID)%'
+            $mobileIssuer: '%env(default:mobile_issuer:KEYCLOAK_MOBILE_ISSUER)%'
     App\EventSubscriber\ApiSubscriber:
         arguments:
             $allowedOrigin: '%env(CORS_ALLOW_ORIGIN)%'
+            $mobileWebOrigins: '%env(default:mobile_web_origins:MOBILE_WEB_ORIGINS)%'
     App\Controller\AuthController:
         arguments:
             $frontendOrigin: '%env(FRONTEND_ORIGIN)%'

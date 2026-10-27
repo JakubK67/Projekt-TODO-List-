@@ -2,6 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { AuthProvider, useAuth } from './src/auth/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import TasksScreen from './src/screens/TasksScreen';
 import TaskFormScreen from './src/screens/TaskFormScreen';
@@ -15,21 +17,31 @@ const theme = {
     card: colors.forest, text: colors.text, border: colors.border },
 };
 
-export default function App() {
+function AppNavigation() {
+  const { user, demo, loading, logout } = useAuth();
+  if (loading) return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, backgroundColor: colors.background }}>
+    <ActivityIndicator color={colors.forest} /><Text style={{ color: colors.text }}>Przywracanie sesji…</Text>
+  </View>;
   return (
-    <SafeAreaProvider>
       <NavigationContainer theme={theme}>
         <StatusBar style="dark" />
-        <Stack.Navigator initialRouteName="Login" screenOptions={{
+        <Stack.Navigator screenOptions={{
           headerStyle: { backgroundColor: colors.forest }, headerTintColor: colors.white,
           headerTitleStyle: { fontWeight: '700' }, contentStyle: { backgroundColor: colors.background },
         }}>
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Tasks" component={TasksScreen} options={{ title: 'Moje zadania', statusBarStyle: 'light' }} />
+          {user || demo ? <Stack.Group navigationKey={user?.sub ?? 'demo'}>
+          <Stack.Screen name="Tasks" component={TasksScreen} options={{ title: 'Moje zadania', statusBarStyle: 'light', headerRight: () =>
+            <Pressable accessibilityRole="button" onPress={() => { void logout(); }} style={{ paddingVertical: 12, paddingLeft: 12 }}>
+              <Text style={{ color: colors.white, fontWeight: '600' }}>{demo ? 'Wyjdź' : 'Wyloguj'}</Text>
+            </Pressable> }} />
           <Stack.Screen name="TaskForm" component={TaskFormScreen}
             options={({ route }) => ({ title: route.params?.task ? 'Edytuj zadanie' : 'Dodaj zadanie', statusBarStyle: 'light' })} />
+          </Stack.Group> : <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />}
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaProvider>
   );
+}
+
+export default function App() {
+  return <SafeAreaProvider><AuthProvider><AppNavigation /></AuthProvider></SafeAreaProvider>;
 }

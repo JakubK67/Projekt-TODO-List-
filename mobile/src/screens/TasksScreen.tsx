@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
+import { useAuth } from '../auth/AuthContext';
+import { displayDate, readTasks } from '../utils/tasks';
 import { demoTasks } from '../data/demoTasks';
 import { colors, priorityColors, statusColors } from '../theme';
 import { STATUSES, type RootStackParamList, type Task } from '../types';
@@ -12,21 +15,43 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>;
 type Filter = 'Wszystkie' | Task['status'];
 
 export default function TasksScreen({ navigation }: Props) {
+  const { demo, user, client } = useAuth();
   const [filter, setFilter] = useState<Filter>('Wszystkie');
-  const tasks = demoTasks.filter(task => filter === 'Wszystkie' || task.status === filter);
+  const [source, setSource] = useState<Task[]>(demo ? demoTasks : []);
+  const [loading, setLoading] = useState(!demo);
+  const [error, setError] = useState('');
+  const load = useCallback(async (signal: AbortSignal) => {
+    if (demo) return;
+    setLoading(true); setError('');
+    try {
+      const data = await client.api('/api/tasks', signal);
+      if (!signal.aborted) setSource(readTasks(data));
+    } catch (err) {
+      if (!signal.aborted) setError(err instanceof Error ? err.message : 'Nie udało się pobrać zadań. Sprawdź połączenie.');
+    } finally { if (!signal.aborted) setLoading(false); }
+  }, [demo, client]);
+  useFocusEffect(useCallback(() => {
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [load]));
+  const tasks = source.filter(task => filter === 'Wszystkie' || task.status === filter);
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
       <FlatList data={tasks} keyExtractor={task => String(task.id)} contentContainerStyle={styles.content}
+        refreshing={loading && source.length > 0} onRefresh={demo ? undefined : () => { void load(new AbortController().signal); }}
         ListHeaderComponent={
           <View style={styles.heading}>
-            <DemoNotice />
+            {demo ? <DemoNotice /> : <Text style={styles.welcome}>Witaj, {user?.username}</Text>}
+            {error && <View style={styles.errorBox}><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
+              <AppButton label="Spróbuj ponownie" secondary disabled={loading} onPress={() => { void load(new AbortController().signal); }} /></View>}
             <View style={styles.titleRow}>
               <View style={styles.titleCopy}>
                 <Text style={styles.title}>Zadania pod kontrolą</Text>
                 <Text style={styles.subtitle}>Znajdź chwilę na to, co ważne.</Text>
               </View>
-              <View style={styles.count}><Text style={styles.countText}>{demoTasks.length}</Text></View>
+              <View style={styles.count}><Text style={styles.countText}>{loading && source.length === 0 ? '…' : source.length}</Text></View>
             </View>
             <AppButton label="+ Dodaj zadanie" onPress={() => navigation.navigate('TaskForm')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
@@ -39,14 +64,15 @@ export default function TasksScreen({ navigation }: Props) {
             </ScrollView>
           </View>
         }
-        ListEmptyComponent={<Text style={styles.subtitle}>Brak zadań o tym statusie.</Text>}
+        ListEmptyComponent={loading ? <ActivityIndicator color={colors.forest} accessibilityLabel="Wczytywanie zadań" /> : !error ? <Text style={styles.subtitle}>Brak zadań o tym statusie.</Text> : undefined}
         renderItem={({ item }) => (
           <View style={[styles.card, { borderLeftColor: statusColors[item.status] }]}>
             <Text style={[styles.status, { color: statusColors[item.status] }]}>{item.status}</Text>
+            {item.project_name && <Text style={styles.label}>{item.project_name}</Text>}
             <Text style={styles.taskName}>{item.name}</Text>
             <Text style={styles.description}>{item.description}</Text>
             <View style={styles.details}>
-              <View><Text style={styles.label}>Termin</Text><Text style={styles.value}>{item.deadline || 'Brak terminu'}</Text></View>
+              <View><Text style={styles.label}>Termin</Text><Text style={styles.value}>{displayDate(item.deadline) || 'Brak terminu'}</Text></View>
               <View><Text style={styles.label}>Priorytet</Text><Text style={[styles.value, { color: priorityColors[item.priority] }]}>{item.priority}</Text></View>
             </View>
             <AppButton label="Edytuj" secondary onPress={() => navigation.navigate('TaskForm', { task: item })} />
@@ -60,6 +86,9 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 16, maxWidth: 680, width: '100%', alignSelf: 'center' },
   heading: { gap: 20 },
+  welcome: { color: colors.forest, fontSize: 16, fontWeight: '600' },
+  errorBox: { padding: 16, borderRadius: 12, backgroundColor: colors.surface, gap: 12 },
+  error: { color: colors.danger, fontSize: 14, lineHeight: 21 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   titleCopy: { flex: 1 },
   title: { fontSize: 25, fontWeight: '800', color: colors.text },

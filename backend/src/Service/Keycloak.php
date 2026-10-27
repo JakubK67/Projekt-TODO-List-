@@ -9,10 +9,16 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class Keycloak
 {
-    public function __construct(private HttpClientInterface $http, private string $baseUrl, private string $realm, private string $issuer, private string $clientId, private string $adminUsername, private string $adminPassword, private string $mfaAcrValues, private string $frontendOrigin) {}
+    public function __construct(private HttpClientInterface $http, private string $baseUrl, private string $realm, private string $issuer, private string $clientId, private string $adminUsername, private string $adminPassword, private string $mfaAcrValues, private string $frontendOrigin, private string $mobileClientId = 'todo-mobile', private string $mobileIssuer = '') {}
 
     public function authenticate(Request $request): object
     {
+        if ($request->headers->has('Authorization')) {
+            if (!preg_match('/^Bearer ([^\s]+)$/i', $request->headers->get('Authorization', ''), $matches)) {
+                throw new HttpException(401, 'Nieprawidłowy token aplikacji mobilnej.');
+            }
+            return $this->validateMobileToken($matches[1]);
+        }
         $session = $request->getSession();
         $accessToken = $session->get('oidc_access_token');
         if (!is_string($accessToken) || $accessToken === '') {
@@ -47,24 +53,38 @@ class Keycloak
             }
         }
         return $token;
+    }
 
-        /* Poprzedni tryb Bearer został wyłączony; tokeny API są dostępne wyłącznie z sesji HttpOnly.
-        if (!preg_match('/^Bearer\s+(.+)$/i', $request->headers->get('Authorization', ''), $matches)) {
-            throw new HttpException(401, 'Brak tokenu');
+    public function validateMobileToken(string $rawToken): object
+    {
+        if ($this->mobileIssuer === '' || $this->mobileClientId === '' || $this->mobileClientId === $this->clientId) {
+            error_log('Mobile auth rejected: mobile_configuration');
+            throw new HttpException(401, 'Logowanie mobilne nie jest skonfigurowane.');
         }
-        $jwks = $this->send('GET', $this->realmUrl() . '/protocol/openid-connect/certs');
         try {
-            JWT::$leeway = 30;
-            $token = JWT::decode($matches[1], JWK::parseKeySet($jwks, 'RS256'));
-        } catch (\Throwable) {
-            throw new HttpException(401, 'Nieprawidłowy token');
+            JWT::$leeway = 5;
+            $jwks = $this->send('GET', $this->realmUrl() . '/protocol/openid-connect/certs');
+            $token = JWT::decode($rawToken, JWK::parseKeySet($jwks, 'RS256'));
+        } catch (\Throwable $error) {
+            error_log('Mobile auth rejected: jwt_validation ' . get_class($error));
+            throw new HttpException(401, 'Sesja wygasła. Zaloguj się ponownie.');
         }
-        $audiences = (array) ($token->aud ?? []);
-        if (($token->iss ?? '') !== $this->issuer || !is_string($token->sub ?? null) || $token->sub === '' || (($token->azp ?? '') !== $this->clientId && !in_array($this->clientId, $audiences, true))) {
-            throw new HttpException(401, 'Nieprawidłowy token');
+        $audiences = is_array($token->aud ?? null) ? $token->aud : [$token->aud ?? null];
+        $checks = [
+            'issuer' => ($token->iss ?? '') === $this->mobileIssuer,
+            'client' => ($token->azp ?? '') === $this->mobileClientId,
+            'token_type' => ($token->typ ?? '') === 'Bearer',
+            'subject' => is_string($token->sub ?? null) && $token->sub !== '',
+            'expiry' => is_numeric($token->exp ?? null) && (int) $token->exp > time(),
+            'audience' => in_array($this->mobileClientId, $audiences, true),
+        ];
+        $failed = array_keys(array_filter($checks, static fn(bool $valid) => !$valid));
+        if ($failed !== []) {
+            error_log('Mobile auth rejected: ' . implode(',', $failed));
+            throw new HttpException(401, 'Nieprawidłowy token aplikacji mobilnej.');
         }
+        if (!$this->hasMfa($token)) throw new HttpException(403, 'Wymagane jest dodatkowe uwierzytelnienie.');
         return $token;
-        */
     }
 
     public function validateOidcToken(string $rawToken, bool $requireMfa = false): object
