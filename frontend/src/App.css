@@ -176,6 +176,38 @@ nav{
     }
 }
 
+nav.nav > a.nav-button {
+    display: inline-flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3vw;
+    border: 0;
+    background-color: darkslategrey;
+    color: #fff;
+    font-size: large;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+}
+
+nav.nav > a.nav-button:link,
+nav.nav > a.nav-button:visited {
+    color: #fff;
+    text-decoration: none;
+}
+
+nav.nav > a.nav-button:hover,
+nav.nav > a.nav-button.active {
+    background-color: rgb(89, 114, 114);
+}
+
+nav.nav > a.nav-button:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -4px;
+}
+
 .user-profile dt{
     font-weight: bold;
     margin-top: 16px;

@@ -5,17 +5,13 @@ import { apiFetch, setCsrfToken } from './api.js';
 import Home from './pages/Home.jsx';
 import Projects from './pages/Projects.jsx';
 import Users from './pages/Users.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 import UserMenu from './pages/UserMenu.jsx';
 import Kanban from './pages/Kanban.jsx';
 import Statistics from './pages/Statistics.jsx';
 import './App.css';
 
-function AdminGuard({ children }) {
-  const [allowed, setAllowed] = useState(null);
-  useEffect(() => {
-    apiFetch('/api/admin').then(response => setAllowed(response.ok)).catch(() => setAllowed(false));
-  }, []);
-  if (allowed === null) return <p>Sprawdzanie uprawnień…</p>;
+function AdminGuard({ children, allowed }) {
   return allowed ? children : <p role="alert">Brak uprawnień do tej strony.</p>;
 }
 
@@ -45,7 +41,7 @@ export default function AuthenticatedApp() {
         }
         if (!response.ok) throw new Error('Nie udało się zalogować.');
         setCsrfToken(result.csrfToken);
-        // Token przekazujemy do backendu raz; aplikacja korzysta dalej z sesji HttpOnly.
+
         if (active) setAuth(result);
       } catch {
         if (active) setError('Nie udało się zalogować. Odśwież stronę lub spróbuj ponownie.');
@@ -99,7 +95,7 @@ export default function AuthenticatedApp() {
         <button className="nav-button" onClick={() => navigate('/tasks')}>Zadania</button>
         <button className="nav-button" onClick={() => navigate('/kanban')}>Kanban</button>
         <button className="nav-button" onClick={() => navigate('/projects')}>Projekty</button>
-        {auth.isAdmin && <NavLink to="/admin">Administracja</NavLink>}
+        {auth.isAdmin && <NavLink className="nav-button" to="/admin">Administracja</NavLink>}
         <div className="user-menu">
           <button className="nav-button" onClick={() => navigate('/panel')}>
             {auth.username}{auth.isAdmin ? ' (administrator)' : ' (użytkownik)'}
@@ -124,8 +120,8 @@ export default function AuthenticatedApp() {
           <Route path="/panel" element={<UserMenu />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/usermenu" element={<Navigate to="/panel" replace />} />
-          <Route path="/admin" element={<AdminGuard><Users /></AdminGuard>} />
-          <Route path="/users" element={<AdminGuard><Users /></AdminGuard>} />
+          <Route path="/admin" element={<AdminGuard allowed={auth.isAdmin}><AdminDashboard /></AdminGuard>} />
+          <Route path="/users" element={<AdminGuard allowed={auth.isAdmin}><Users /></AdminGuard>} />
           <Route path="*" element={<p>Nie znaleziono strony.</p>} />
         </Routes>
       </main>
