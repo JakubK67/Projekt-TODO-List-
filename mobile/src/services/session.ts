@@ -174,15 +174,18 @@ export class SessionClient {
     await this.refreshPromise;
   }
 
-  async api(path: string, signal?: AbortSignal): Promise<unknown> {
+  async api(path: string, options: RequestInit = {}): Promise<unknown> {
     await this.ensureToken();
+    const headers = new Headers(options.headers);
+    headers.set('Authorization', `Bearer ${this.tokens!.accessToken}`);
+    headers.set('Content-Type', 'application/json');
     const get = () => this.request(`${this.config.apiUrl}${path}`, {
-      headers: { Authorization: `Bearer ${this.tokens!.accessToken}` }, credentials: 'omit', signal,
+      ...options, headers, credentials: 'omit',
     });
     let response = await get();
     if (response.status === 401) { await this.ensureToken(true); response = await get(); }
     if (response.status === 401) await this.expire();
-    const data = await response.json();
+    const data = response.status === 204 ? null : await response.json();
     if (!response.ok) throw new ApiError(response.status === 401 ? 'Sesja wygasła. Zaloguj się ponownie.' : 'Nie udało się pobrać danych z serwera.', response.status);
     return data;
   }

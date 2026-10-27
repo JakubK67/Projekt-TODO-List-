@@ -6,12 +6,14 @@ import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
 import { createTask, updateTask } from '../data/tasksApi';
 import { colors } from '../theme';
-import { displayDate } from '../utils/tasks';
+import { useAuth } from '../auth/AuthContext';
+import { apiDate, displayDate } from '../utils/tasks';
 import { PRIORITIES, STATUSES, type RootStackParamList, type Task, type TaskInput } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskForm'>;
 
 export default function TaskFormScreen({ navigation, route }: Props) {
+  const { demo, client } = useAuth();
   const task = route.params?.task;
   const [name, setName] = useState(task?.name ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
@@ -32,11 +34,21 @@ export default function TaskFormScreen({ navigation, route }: Props) {
     setSaving(true);
     setError('');
     try {
-      if (task) await updateTask({ ...taskData, id: task.id });
-      else await createTask(taskData);
+      if (demo) {
+        if (task) await updateTask({ ...taskData, id: task.id });
+        else await createTask(taskData);
+      } else {
+        const apiTask = { ...taskData, deadline: apiDate(taskData.deadline) };
+        await client.api(task ? `/api/tasks/${encodeURIComponent(task.id)}` : '/api/tasks', {
+          method: task ? 'PUT' : 'POST',
+          body: JSON.stringify(apiTask),
+        });
+      }
       navigation.goBack();
     } catch {
-      setError('Nie udało się zapisać zadania. Sprawdź połączenie z json-server i spróbuj ponownie.');
+      setError(demo
+        ? 'Nie udało się zapisać zadania. Sprawdź połączenie z json-server i spróbuj ponownie.'
+        : 'Nie udało się zapisać zadania na koncie. Sprawdź połączenie z backendem i spróbuj ponownie.');
     } finally {
       setSaving(false);
     }
@@ -46,7 +58,7 @@ export default function TaskFormScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={96}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
-          <DemoNotice form />
+          {demo ? <DemoNotice form /> : <Text style={styles.hint}>Zadanie zostanie zapisane na Twoim koncie.</Text>}
           <View style={styles.card}>
             <Text style={styles.title}>{task ? 'Szczegóły zadania' : 'Co chcesz zrobić?'}</Text>
             <View style={styles.field}>

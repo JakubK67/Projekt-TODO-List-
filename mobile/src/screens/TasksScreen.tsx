@@ -15,7 +15,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>;
 type Filter = 'Wszystkie' | Task['status'];
 
 export default function TasksScreen({ navigation }: Props) {
-  const { demo, user } = useAuth();
+  const { demo, user, client } = useAuth();
   const [filter, setFilter] = useState<Filter>('Wszystkie');
   const [source, setSource] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,24 +24,29 @@ export default function TasksScreen({ navigation }: Props) {
   const load = useCallback(async (signal: AbortSignal) => {
     setLoading(true); setError('');
     try {
-      const data = await getTasks();
+      const data = demo ? await getTasks() : await client.api('/api/tasks', { signal });
       if (!signal.aborted) setSource(readTasks(data));
     } catch {
-      if (!signal.aborted) setError('Nie udało się pobrać zadań z json-server. Sprawdź, czy serwer działa.');
+      if (!signal.aborted) setError(demo
+        ? 'Nie udało się pobrać zadań z json-server. Sprawdź, czy serwer działa.'
+        : 'Nie udało się pobrać zadań z konta. Sprawdź połączenie z backendem.');
     } finally { if (!signal.aborted) setLoading(false); }
-  }, []);
+  }, [demo, client]);
   const removeTask = useCallback(async (id: Task['id']) => {
     setDeletingId(id);
     setError('');
     try {
-      await deleteTask(id);
+      if (demo) await deleteTask(id);
+      else await client.api(`/api/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
       setSource(current => current.filter(task => String(task.id) !== String(id)));
     } catch {
-      setError('Nie udało się usunąć zadania z json-server. Sprawdź, czy serwer działa.');
+      setError(demo
+        ? 'Nie udało się usunąć zadania z json-server. Sprawdź, czy serwer działa.'
+        : 'Nie udało się usunąć zadania z konta. Sprawdź połączenie z backendem.');
     } finally {
       setDeletingId(null);
     }
-  }, []);
+  }, [demo, client]);
 
   function confirmDelete(task: Task) {
     const message = `Czy na pewno usunąć zadanie „${task.name}”?`;
@@ -69,7 +74,7 @@ export default function TasksScreen({ navigation }: Props) {
         ListHeaderComponent={
           <View style={styles.heading}>
             {!demo ? <Text style={styles.welcome}>Witaj, {user?.username}</Text> : null}
-            <DemoNotice />
+            {demo ? <DemoNotice /> : null}
             {error ? <View style={styles.errorBox}><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
               <AppButton label="Spróbuj ponownie" secondary disabled={loading} onPress={() => { void load(new AbortController().signal); }} /></View> : null}
             <View style={styles.titleRow}>
