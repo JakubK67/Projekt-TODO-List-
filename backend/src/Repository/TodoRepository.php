@@ -90,6 +90,31 @@ final class TodoRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function allTasks(): array
+    {
+        $stmt = $this->pdo->query('SELECT t.id, t.name, t.description, t.deadline, t.priority, t.status, t.created, t.updated, t.project_id, p.name AS project_name, u.username AS owner_username, u.email AS owner_email
+            FROM tasks t JOIN users u ON u.id = t.user_id LEFT JOIN projects p ON p.id = t.project_id ORDER BY t.deadline ASC, t.id DESC');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function adminChangeTaskStatus(int $taskId, string $status): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE tasks SET status = ? WHERE id = ?');
+        $stmt->execute([$status, $taskId]);
+        if ($stmt->rowCount() === 0) {
+            $check = $this->pdo->prepare('SELECT id FROM tasks WHERE id = ?');
+            $check->execute([$taskId]);
+            if ($check->fetchColumn() === false) throw new NotFoundHttpException('Nie znaleziono zadania');
+        }
+    }
+
+    public function adminDeleteTask(int $taskId): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE id = ?');
+        $stmt->execute([$taskId]);
+        if ($stmt->rowCount() === 0) throw new NotFoundHttpException('Nie znaleziono zadania');
+    }
+
     public function ownStatistics(string $keycloakId): array
     {
         $user = $this->user($keycloakId);

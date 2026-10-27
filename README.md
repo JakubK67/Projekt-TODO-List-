@@ -476,6 +476,12 @@ API zadań przyjmuje `description` lub starsze pole `desc`. Priorytet i status m
 
 Błędy mają postać `{"error":"komunikat"}`. Typowe kody to 400 dla błędnych danych, 401 dla brakującej lub wygasłej sesji, 403 dla braku MFA, uprawnień lub nieprawidłowej ochrony CSRF, 404 dla brakującego albo niedostępnego zasobu oraz 500/502/503 dla błędów serwera lub usług. Szczegóły techniczne należy sprawdzać w logach backendu.
 
+## Mobile mock API
+
+Run `npm run mock:api` from the repository root, then in another terminal run `cd mobile` and `npm start`. The mobile app loads tasks from `mock/data/db.json` and saves new or edited tasks through json-server. The API is available at `http://localhost:3001/tasks` on the computer.
+
+The app detects the computer address from Expo's development server. If it cannot, Android Emulator falls back to `http://10.0.2.2:3001`, while iOS Simulator and web fall back to `http://localhost:3001`. For a physical phone, keep it and the computer on the same network. If needed, copy `mobile/.env.example` to `mobile/.env`, uncomment `EXPO_PUBLIC_API_URL`, and set it to the computer's LAN IP, such as `http://192.168.1.10:3001`.
+
 ## Praca lokalna i sprawdzanie zmian
 
 Do pracy poza Dockerem potrzebne są PHP co najmniej 8.2, Composer, rozszerzenia wymagane przez pakiety Symfony, PDO MySQL, dostępny MySQL i Keycloak. Testy korzystają dodatkowo z PDO SQLite. Frontend wymaga Node.js zgodnego z Vite; obraz używa Node.js 22.

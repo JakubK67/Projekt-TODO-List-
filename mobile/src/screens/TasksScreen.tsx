@@ -7,7 +7,7 @@ import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
 import { useAuth } from '../auth/AuthContext';
 import { displayDate, readTasks } from '../utils/tasks';
-import { demoTasks } from '../data/demoTasks';
+import { getTasks } from '../data/tasksApi';
 import { colors, priorityColors, statusColors } from '../theme';
 import { STATUSES, type RootStackParamList, type Task } from '../types';
 
@@ -17,17 +17,17 @@ type Filter = 'Wszystkie' | Task['status'];
 export default function TasksScreen({ navigation }: Props) {
   const { demo, user, client } = useAuth();
   const [filter, setFilter] = useState<Filter>('Wszystkie');
-  const [source, setSource] = useState<Task[]>(demo ? demoTasks : []);
-  const [loading, setLoading] = useState(!demo);
+  const [source, setSource] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const load = useCallback(async (signal: AbortSignal) => {
-    if (demo) return;
     setLoading(true); setError('');
     try {
-      const data = await client.api('/api/tasks', signal);
+      const data = demo ? await getTasks() : await client.api('/api/tasks', signal);
       if (!signal.aborted) setSource(readTasks(data));
     } catch (err) {
-      if (!signal.aborted) setError(err instanceof Error ? err.message : 'Nie udało się pobrać zadań. Sprawdź połączenie.');
+      if (!signal.aborted) setError(demo ? 'Nie udało się pobrać zadań z mock API. Sprawdź, czy json-server działa.'
+        : err instanceof Error ? err.message : 'Nie udało się pobrać zadań. Sprawdź połączenie.');
     } finally { if (!signal.aborted) setLoading(false); }
   }, [demo, client]);
   useFocusEffect(useCallback(() => {
@@ -40,7 +40,7 @@ export default function TasksScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
       <FlatList data={tasks} keyExtractor={task => String(task.id)} contentContainerStyle={styles.content}
-        refreshing={loading && source.length > 0} onRefresh={demo ? undefined : () => { void load(new AbortController().signal); }}
+        refreshing={loading && source.length > 0} onRefresh={() => { void load(new AbortController().signal); }}
         ListHeaderComponent={
           <View style={styles.heading}>
             {demo ? <DemoNotice /> : <Text style={styles.welcome}>Witaj, {user?.username}</Text>}

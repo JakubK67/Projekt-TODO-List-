@@ -115,6 +115,12 @@ class Keycloak
             || (bool) array_intersect(array_map('strval', $amr), ['otp', 'mfa', 'hwk', 'swk']);
     }
 
+    public function hasRole(object $token, string $role): bool
+    {
+        $roles = $token->realm_access->roles ?? [];
+        return is_array($roles) && in_array($role, $roles, true);
+    }
+
     public function establishSession(Request $request, array $tokens): object
     {
         $token = $this->validateOidcToken((string) ($tokens['access_token'] ?? ''), true);

@@ -1,9 +1,9 @@
-import { PRIORITIES, STATUSES, type Task } from '../types';
+import { PRIORITIES, STATUSES, type Task } from '../types.ts';
 
 export function readTasks(data: unknown): Task[] {
   if (!Array.isArray(data)) throw new Error('Nieprawidłowa lista zadań.');
   return data.map(item => {
-    if (!item || !Number.isInteger(item.id) || typeof item.name !== 'string'
+    if (!item || !(Number.isInteger(item.id) || (typeof item.id === 'string' && item.id.trim() !== '')) || typeof item.name !== 'string'
       || !PRIORITIES.includes(item.priority) || !STATUSES.includes(item.status)) throw new Error('Nieprawidłowe dane zadania.');
     return { ...item, description: typeof item.description === 'string' ? item.description : '',
       deadline: typeof item.deadline === 'string' ? item.deadline : '' };
