@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "mock:api": "json-server mock/data/db.json --host 0.0.0.0 --port 3001",
     "test": "npm --prefix frontend test && php backend/tests/input_validation.php && npm --prefix frontend run build"
   },
   "dependencies": {
@@ -7,5 +8,8 @@
     "papaparse": "^5.7.0",
     "pdfmake": "^0.2.23",
     "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "json-server": "^1.0.0-beta.15"
   }
 }

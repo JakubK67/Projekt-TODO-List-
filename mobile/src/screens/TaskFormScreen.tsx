@@ -4,8 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
+import { createTask, updateTask } from '../data/tasksApi';
 import { colors } from '../theme';
-import { PRIORITIES, STATUSES, type RootStackParamList, type Task } from '../types';
+import { PRIORITIES, STATUSES, type RootStackParamList, type Task, type TaskInput } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskForm'>;
 
@@ -16,6 +17,28 @@ export default function TaskFormScreen({ navigation, route }: Props) {
   const [deadline, setDeadline] = useState(task?.deadline ?? '');
   const [priority, setPriority] = useState<Task['priority']>(task?.priority ?? 'Normalny');
   const [status, setStatus] = useState<Task['status']>(task?.status ?? 'Do zrobienia');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  async function saveTask() {
+    if (!name.trim()) {
+      setError('Wpisz nazwę zadania.');
+      return;
+    }
+
+    const taskData: TaskInput = { name: name.trim(), description: description.trim(), deadline: deadline.trim(), priority, status };
+    setSaving(true);
+    setError('');
+    try {
+      if (task) await updateTask({ ...taskData, id: task.id });
+      else await createTask(taskData);
+      navigation.goBack();
+    } catch {
+      setError('Nie udało się zapisać zadania. Sprawdź połączenie z json-server i spróbuj ponownie.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
@@ -60,7 +83,8 @@ export default function TaskFormScreen({ navigation, route }: Props) {
                 </Pressable>)}
               </View>
             </View>
-            <AppButton label="Zapisz zadanie" disabled />
+            {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+            <AppButton label={saving ? 'Zapisywanie...' : 'Zapisz zadanie'} disabled={saving} onPress={() => void saveTask()} />
             <AppButton label="Anuluj" secondary onPress={() => navigation.goBack()} />
           </View>
         </ScrollView>
@@ -81,6 +105,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white, borderRadius: 10, color: colors.text, fontSize: 16 },
   description: { minHeight: 110 },
   hint: { fontSize: 12, color: colors.muted },
+  error: { color: '#a42b2b', fontSize: 14, lineHeight: 21 },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   option: { minHeight: 44, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border, justifyContent: 'center' },
   selected: { backgroundColor: colors.forest, borderColor: colors.forest },

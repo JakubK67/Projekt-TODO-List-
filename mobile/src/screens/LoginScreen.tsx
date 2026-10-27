@@ -17,7 +17,7 @@ export default function LoginScreen({ navigation }: Props) {
         <Text style={styles.subtitle}>Twoje zadania zawsze pod ręką. Planuj, ustalaj priorytety i działaj we własnym rytmie.</Text>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Witaj w TODO Mobile</Text>
-          <Text style={styles.copy}>Na początek poznaj wygląd aplikacji na przykładowych zadaniach.</Text>
+          <Text style={styles.copy}>Zobacz zadania wczytane z lokalnego mock API.</Text>
           <AppButton label="Zobacz podgląd aplikacji" onPress={() => navigation.navigate('Tasks')} />
           <AppButton label="Zaloguj się" disabled secondary />
           <Text style={styles.note}>Logowanie do konta nie jest jeszcze dostępne w tej wersji.</Text>

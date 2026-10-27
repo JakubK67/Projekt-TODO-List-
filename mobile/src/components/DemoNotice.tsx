@@ -4,10 +4,10 @@ import { colors } from '../theme';
 export default function DemoNotice({ form = false }: { form?: boolean }) {
   return (
     <View style={styles.notice}>
-      <Text style={styles.title}>Tryb podglądu</Text>
+      <Text style={styles.title}>Mock API</Text>
       <Text style={styles.text}>{form
-        ? 'Możesz wypróbować formularz. Zmiany nie są zapisywane.'
-        : 'Dane przykładowe. Zadania z Twojego konta nie są jeszcze wczytywane.'}</Text>
+        ? 'Zmiany są zapisywane przez lokalny json-server.'
+        : 'Zadania są wczytywane z lokalnego json-server.'}</Text>
     </View>
   );
 }

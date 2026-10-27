@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
-import { demoTasks } from '../data/demoTasks';
+import { getTasks } from '../data/tasksApi';
 import { colors, priorityColors, statusColors } from '../theme';
 import { STATUSES, type RootStackParamList, type Task } from '../types';
 
@@ -13,11 +14,28 @@ type Filter = 'Wszystkie' | Task['status'];
 
 export default function TasksScreen({ navigation }: Props) {
   const [filter, setFilter] = useState<Filter>('Wszystkie');
-  const tasks = demoTasks.filter(task => filter === 'Wszystkie' || task.status === filter);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadTasks = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setTasks(await getTasks());
+    } catch {
+      setError('Nie udało się pobrać zadań. Sprawdź, czy json-server działa i czy adres API jest poprawny.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { void loadTasks(); }, [loadTasks]));
+  const filteredTasks = tasks.filter(task => filter === 'Wszystkie' || task.status === filter);
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
-      <FlatList data={tasks} keyExtractor={task => String(task.id)} contentContainerStyle={styles.content}
+      <FlatList data={filteredTasks} keyExtractor={task => String(task.id)} contentContainerStyle={styles.content}
         ListHeaderComponent={
           <View style={styles.heading}>
             <DemoNotice />
@@ -26,7 +44,7 @@ export default function TasksScreen({ navigation }: Props) {
                 <Text style={styles.title}>Zadania pod kontrolą</Text>
                 <Text style={styles.subtitle}>Znajdź chwilę na to, co ważne.</Text>
               </View>
-              <View style={styles.count}><Text style={styles.countText}>{demoTasks.length}</Text></View>
+              <View style={styles.count}><Text style={styles.countText}>{tasks.length}</Text></View>
             </View>
             <AppButton label="+ Dodaj zadanie" onPress={() => navigation.navigate('TaskForm')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
@@ -39,7 +57,11 @@ export default function TasksScreen({ navigation }: Props) {
             </ScrollView>
           </View>
         }
-        ListEmptyComponent={<Text style={styles.subtitle}>Brak zadań o tym statusie.</Text>}
+        ListEmptyComponent={loading
+          ? <ActivityIndicator accessibilityLabel="Loading tasks" color={colors.forest} />
+          : error
+            ? <View style={styles.message}><Text style={styles.error}>{error}</Text><AppButton label="Spróbuj ponownie" secondary onPress={() => void loadTasks()} /></View>
+            : <Text style={styles.subtitle}>Brak zadań o tym statusie.</Text>}
         renderItem={({ item }) => (
           <View style={[styles.card, { borderLeftColor: statusColors[item.status] }]}>
             <Text style={[styles.status, { color: statusColors[item.status] }]}>{item.status}</Text>
@@ -78,4 +100,6 @@ const styles = StyleSheet.create({
   details: { flexDirection: 'row', flexWrap: 'wrap', gap: 28, paddingVertical: 6 },
   label: { color: colors.muted, fontSize: 12, marginBottom: 5 },
   value: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  message: { gap: 12 },
+  error: { color: '#a42b2b', fontSize: 14, lineHeight: 21 },
 });
