@@ -6,14 +6,12 @@ import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
 import { createTask, updateTask } from '../data/tasksApi';
 import { colors } from '../theme';
-import { useAuth } from '../auth/AuthContext';
 import { displayDate } from '../utils/tasks';
 import { PRIORITIES, STATUSES, type RootStackParamList, type Task, type TaskInput } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskForm'>;
 
 export default function TaskFormScreen({ navigation, route }: Props) {
-  const { demo } = useAuth();
   const task = route.params?.task;
   const [name, setName] = useState(task?.name ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
@@ -24,7 +22,7 @@ export default function TaskFormScreen({ navigation, route }: Props) {
   const [error, setError] = useState('');
 
   async function saveTask() {
-    if (!demo || saving) return;
+    if (saving) return;
     if (!name.trim()) {
       setError('Wpisz nazwę zadania.');
       return;
@@ -48,7 +46,7 @@ export default function TaskFormScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={96}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
-          {demo ? <DemoNotice form /> : <Text style={styles.hint}>Podgląd formularza. Zapis zmian do konta będzie dostępny w kolejnym etapie.</Text>}
+          <DemoNotice form />
           <View style={styles.card}>
             <Text style={styles.title}>{task ? 'Szczegóły zadania' : 'Co chcesz zrobić?'}</Text>
             <View style={styles.field}>
@@ -88,7 +86,7 @@ export default function TaskFormScreen({ navigation, route }: Props) {
               </View>
             </View>
             {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-            <AppButton label={saving ? 'Zapisywanie...' : 'Zapisz zadanie'} disabled={saving || !demo} onPress={() => void saveTask()} />
+            <AppButton label={saving ? 'Zapisywanie...' : 'Zapisz zadanie'} disabled={saving} onPress={() => void saveTask()} />
             <AppButton label="Anuluj" secondary onPress={() => navigation.goBack()} />
           </View>
         </ScrollView>

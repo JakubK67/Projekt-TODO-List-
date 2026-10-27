@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,7 +7,7 @@ import AppButton from '../components/AppButton';
 import DemoNotice from '../components/DemoNotice';
 import { useAuth } from '../auth/AuthContext';
 import { displayDate, readTasks } from '../utils/tasks';
-import { getTasks } from '../data/tasksApi';
+import { deleteTask, getTasks } from '../data/tasksApi';
 import { colors, priorityColors, statusColors } from '../theme';
 import { STATUSES, type RootStackParamList, type Task } from '../types';
 
@@ -15,21 +15,46 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>;
 type Filter = 'Wszystkie' | Task['status'];
 
 export default function TasksScreen({ navigation }: Props) {
-  const { demo, user, client } = useAuth();
+  const { demo, user } = useAuth();
   const [filter, setFilter] = useState<Filter>('Wszystkie');
   const [source, setSource] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState<Task['id'] | null>(null);
   const load = useCallback(async (signal: AbortSignal) => {
     setLoading(true); setError('');
     try {
-      const data = demo ? await getTasks() : await client.api('/api/tasks', signal);
+      const data = await getTasks();
       if (!signal.aborted) setSource(readTasks(data));
-    } catch (err) {
-      if (!signal.aborted) setError(demo ? 'Nie udało się pobrać zadań z mock API. Sprawdź, czy json-server działa.'
-        : err instanceof Error ? err.message : 'Nie udało się pobrać zadań. Sprawdź połączenie.');
+    } catch {
+      if (!signal.aborted) setError('Nie udało się pobrać zadań z json-server. Sprawdź, czy serwer działa.');
     } finally { if (!signal.aborted) setLoading(false); }
-  }, [demo, client]);
+  }, []);
+  const removeTask = useCallback(async (id: Task['id']) => {
+    setDeletingId(id);
+    setError('');
+    try {
+      await deleteTask(id);
+      setSource(current => current.filter(task => String(task.id) !== String(id)));
+    } catch {
+      setError('Nie udało się usunąć zadania z json-server. Sprawdź, czy serwer działa.');
+    } finally {
+      setDeletingId(null);
+    }
+  }, []);
+
+  function confirmDelete(task: Task) {
+    const message = `Czy na pewno usunąć zadanie „${task.name}”?`;
+    if (Platform.OS === 'web') {
+      if (window.confirm(message)) void removeTask(task.id);
+      return;
+    }
+
+    Alert.alert('Usuń zadanie', message, [
+      { text: 'Anuluj', style: 'cancel' },
+      { text: 'Usuń', style: 'destructive', onPress: () => { void removeTask(task.id); } },
+    ]);
+  }
   useFocusEffect(useCallback(() => {
     const controller = new AbortController();
     void load(controller.signal);
@@ -43,7 +68,8 @@ export default function TasksScreen({ navigation }: Props) {
         refreshing={loading && source.length > 0} onRefresh={() => { void load(new AbortController().signal); }}
         ListHeaderComponent={
           <View style={styles.heading}>
-            {demo ? <DemoNotice /> : <Text style={styles.welcome}>Witaj, {user?.username}</Text>}
+            {!demo ? <Text style={styles.welcome}>Witaj, {user?.username}</Text> : null}
+            <DemoNotice />
             {error ? <View style={styles.errorBox}><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
               <AppButton label="Spróbuj ponownie" secondary disabled={loading} onPress={() => { void load(new AbortController().signal); }} /></View> : null}
             <View style={styles.titleRow}>
@@ -76,6 +102,8 @@ export default function TasksScreen({ navigation }: Props) {
               <View><Text style={styles.label}>Priorytet</Text><Text style={[styles.value, { color: priorityColors[item.priority] }]}>{item.priority}</Text></View>
             </View>
             <AppButton label="Edytuj" secondary onPress={() => navigation.navigate('TaskForm', { task: item })} />
+            <AppButton label={String(deletingId) === String(item.id) ? 'Usuwanie...' : 'Usuń zadanie'}
+              secondary disabled={deletingId !== null} onPress={() => confirmDelete(item)} />
           </View>
         )} />
     </SafeAreaView>

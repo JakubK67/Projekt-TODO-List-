@@ -59,7 +59,7 @@ export default function LoginScreen() {
         <Text style={styles.subtitle}>Twoje zadania zawsze pod ręką. Planuj, ustalaj priorytety i działaj we własnym rytmie.</Text>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Witaj w TODO Mobile</Text>
-          <Text style={styles.copy}>Zaloguj się na swoje konto, aby zobaczyć zadania z aplikacji webowej.</Text>
+          <Text style={styles.copy}>Zaloguj się, aby wejść do aplikacji. Zadania mobilne są testowe i pochodzą z lokalnego json-server.</Text>
           {!configReady && <Text style={styles.error}>Ustaw adres API i Keycloak w konfiguracji aplikacji.</Text>}
           {(error || restoreError) ? <Text accessibilityRole="alert" style={styles.error}>{error || restoreError}</Text> : null}
           {busy && <ActivityIndicator color={colors.forest} accessibilityLabel="Trwa logowanie" />}

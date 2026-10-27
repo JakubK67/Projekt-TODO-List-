@@ -24,7 +24,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) throw new Error(`API request failed (${response.status})`);
-  return response.json() as Promise<T>;
+  if (response.status === 204) return undefined as T;
+  const body = await response.text();
+  return body ? JSON.parse(body) as T : undefined as T;
 }
 
 export function getTasks(): Promise<Task[]> {
@@ -40,4 +42,8 @@ export function updateTask(task: Task): Promise<Task> {
     method: 'PUT',
     body: JSON.stringify(task),
   });
+}
+
+export function deleteTask(id: Task['id']): Promise<void> {
+  return request<void>(`/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }

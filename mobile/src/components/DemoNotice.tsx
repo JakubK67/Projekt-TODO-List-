@@ -6,8 +6,8 @@ export default function DemoNotice({ form = false }: { form?: boolean }) {
     <View style={styles.notice}>
       <Text style={styles.title}>Mock API</Text>
       <Text style={styles.text}>{form
-        ? 'Zmiany są zapisywane przez lokalny json-server.'
-        : 'Zadania są wczytywane z lokalnego json-server.'}</Text>
+        ? 'Zmiany zapisują się w lokalnym json-server. Ta wspólna lista testowa nie jest przypisana do konta.'
+        : 'Zadania pochodzą z lokalnego json-server. Ta lista testowa jest wspólna i nie jest przypisana do konta.'}</Text>
     </View>
   );
 }
