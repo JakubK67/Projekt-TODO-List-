@@ -13,8 +13,7 @@
   "loginTheme": "todo-theme",
   "internationalizationEnabled": true,
   "supportedLocales": [
-    "pl",
-    "en"
+    "pl"
   ],
   "defaultLocale": "pl",
   "roles": {
