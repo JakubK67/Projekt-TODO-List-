@@ -339,7 +339,19 @@ export default function Home() {
                       <p>Status: {t.status}</p>
                       <p>Opis: {t.description || 'Brak opisu'}</p>
                       <section className="task-notes" aria-label={`Notatki do zadania: ${t.name}`}>
-                        <button className="task-notes-toggle" type="button" onClick={() => toggleNotes(t.id)}><span aria-hidden="true">✎</span>{openNotes[t.id] ? 'Ukryj notatki' : 'Notatki'}{notesByTask[t.id] ? <span className="task-notes-count">{notesByTask[t.id].length}</span> : null}</button>
+                        <button
+                          className="task-notes-toggle"
+                          type="button"
+                          onClick={() => toggleNotes(t.id)}
+                        >
+                          <span aria-hidden="true">✎</span>
+                          {openNotes[t.id] ? 'Ukryj notatki' : 'Notatki'}
+                          {notesByTask[t.id]?.length > 0 && (
+                            <span className="task-notes-count">
+                              {notesByTask[t.id].length}
+                            </span>
+                          )}
+                        </button>
                         {openNotes[t.id] && <div className="task-notes-content">
                           {(notesByTask[t.id] || []).map(note => <article className="task-note" key={note.id}>
                             {editingNote === note.id ? <form onSubmit={event => saveNote(event, t.id, note.id)}>
@@ -355,9 +367,10 @@ export default function Home() {
                           {notesError[t.id] && <p role="alert">{notesError[t.id]}</p>}
                         </div>}
                       </section>
-                      <button type="button" onClick={() => startEdit(t)}>Edytuj</button>
-                      {' '}
-                      <button type="button" onClick={() => handleDelete(t.id)}>Usuń</button>
+                      <div className="task-actions">
+                        <button type="button" onClick={() => startEdit(t)}>Edytuj</button>
+                        <button type="button" onClick={() => handleDelete(t.id)}>Usuń</button>
+                      </div>
                       <TaskFiles taskId={t.id} />
                     </>
                   )}

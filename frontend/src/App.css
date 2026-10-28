@@ -176,7 +176,7 @@ nav{
     }
 }
 
-nav.nav > a.nav-button {
+nav.nav .admin-nav-menu > a.nav-button {
     display: inline-flex;
     height: 100%;
     align-items: center;
@@ -192,20 +192,67 @@ nav.nav > a.nav-button {
     transition: background-color 150ms ease;
 }
 
-nav.nav > a.nav-button:link,
-nav.nav > a.nav-button:visited {
+nav.nav .admin-nav-menu > a.nav-button:link,
+nav.nav .admin-nav-menu > a.nav-button:visited {
     color: #fff;
     text-decoration: none;
 }
 
-nav.nav > a.nav-button:hover,
-nav.nav > a.nav-button.active {
+nav.nav .admin-nav-menu > a.nav-button:hover {
     background-color: rgb(89, 114, 114);
 }
 
-nav.nav > a.nav-button:focus-visible {
+nav.nav .admin-nav-menu > a.nav-button:focus-visible {
     outline: 2px solid #fff;
     outline-offset: -4px;
+}
+
+.admin-nav-menu {
+    position: relative;
+    display: flex;
+    height: 100%;
+    align-items: stretch;
+}
+
+.admin-nav-submenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 110;
+    width: 100%;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    visibility: hidden;
+    transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+}
+
+.admin-nav-submenu a {
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: 1vh 3vw;
+    background: #2f4f4f;
+    color: #fff;
+    font-size: large;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 150ms ease;
+}
+
+.admin-nav-submenu a:hover,
+.admin-nav-submenu a:focus-visible {
+    background: rgb(89, 114, 114);
+}
+
+.admin-nav-menu:hover .admin-nav-submenu,
+.admin-nav-menu:focus-within .admin-nav-submenu {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    visibility: visible;
 }
 
 .user-profile dt{
@@ -387,6 +434,21 @@ main{
         }
         }
     }
+}
+
+main .tasks .task .task-notes {
+    margin: 20px 0;
+}
+
+main .tasks .task .task-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+main .tasks .task .task-notes-count {
+    margin-left: 8px;
 }
 
 main .tasks .task .task-files {

@@ -6,6 +6,7 @@ import Home from './pages/Home.jsx';
 import Projects from './pages/Projects.jsx';
 import Users from './pages/Users.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import AdminUsers from './pages/AdminUsers.jsx';
 import UserMenu from './pages/UserMenu.jsx';
 import Kanban from './pages/Kanban.jsx';
 import Statistics from './pages/Statistics.jsx';
@@ -95,7 +96,14 @@ export default function AuthenticatedApp() {
         <button className="nav-button" onClick={() => navigate('/tasks')}>Zadania</button>
         <button className="nav-button" onClick={() => navigate('/kanban')}>Kanban</button>
         <button className="nav-button" onClick={() => navigate('/projects')}>Projekty</button>
-        {auth.isAdmin && <NavLink className="nav-button" to="/admin">Administracja</NavLink>}
+        {auth.isAdmin && (
+          <div className="admin-nav-menu">
+            <NavLink className="nav-button" to="/admin">Administracja</NavLink>
+            <div className="admin-nav-submenu">
+              <NavLink to="/admin/users">Użytkownicy</NavLink>
+            </div>
+          </div>
+        )}
         <div className="user-menu">
           <button className="nav-button" onClick={() => navigate('/panel')}>
             {auth.username}{auth.isAdmin ? ' (administrator)' : ' (użytkownik)'}
@@ -121,6 +129,7 @@ export default function AuthenticatedApp() {
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/usermenu" element={<Navigate to="/panel" replace />} />
           <Route path="/admin" element={<AdminGuard allowed={auth.isAdmin}><AdminDashboard /></AdminGuard>} />
+          <Route path="/admin/users" element={<AdminGuard allowed={auth.isAdmin}><AdminUsers currentUserId={auth.sub} /></AdminGuard>} />
           <Route path="/users" element={<AdminGuard allowed={auth.isAdmin}><Users /></AdminGuard>} />
           <Route path="*" element={<p>Nie znaleziono strony.</p>} />
         </Routes>

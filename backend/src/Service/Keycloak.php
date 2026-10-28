@@ -48,23 +48,6 @@ class Keycloak
         }
         return $token;
 
-        /* Poprzedni tryb Bearer został wyłączony; tokeny API są dostępne wyłącznie z sesji HttpOnly.
-        if (!preg_match('/^Bearer\s+(.+)$/i', $request->headers->get('Authorization', ''), $matches)) {
-            throw new HttpException(401, 'Brak tokenu');
-        }
-        $jwks = $this->send('GET', $this->realmUrl() . '/protocol/openid-connect/certs');
-        try {
-            JWT::$leeway = 30;
-            $token = JWT::decode($matches[1], JWK::parseKeySet($jwks, 'RS256'));
-        } catch (\Throwable) {
-            throw new HttpException(401, 'Nieprawidłowy token');
-        }
-        $audiences = (array) ($token->aud ?? []);
-        if (($token->iss ?? '') !== $this->issuer || !is_string($token->sub ?? null) || $token->sub === '' || (($token->azp ?? '') !== $this->clientId && !in_array($this->clientId, $audiences, true))) {
-            throw new HttpException(401, 'Nieprawidłowy token');
-        }
-        return $token;
-        */
     }
 
     public function validateOidcToken(string $rawToken, bool $requireMfa = false): object
@@ -109,7 +92,6 @@ class Keycloak
         $identity = $this->validateOidcToken($idToken);
         if (($identity->sub ?? null) !== $token->sub) throw new HttpException(401, 'Nie udało się rozpocząć sesji.');
         $session = $request->getSession();
-        // Rotujemy identyfikator, aby ograniczyć ryzyko session fixation.
         $session->migrate(true);
         $session->set('oidc_access_token', $tokens['access_token']);
         $session->set('oidc_refresh_token', $tokens['refresh_token'] ?? null);
@@ -149,6 +131,29 @@ class Keycloak
         $user['firstName'] = $profile['first_name'];
         $user['lastName'] = $profile['last_name'];
         $this->send('PUT', $url, ['auth_bearer' => $admin, 'json' => $user]);
+    }
+
+    public function updateManagedUser(string $keycloakId, array $profile): void
+    {
+        $admin = $this->adminToken();
+        $url = $this->userUrl($keycloakId);
+        $user = $this->send('GET', $url, ['auth_bearer' => $admin]);
+
+        $user['username'] = $profile['username'];
+        $user['firstName'] = $profile['first_name'];
+        $user['lastName'] = $profile['last_name'];
+
+        if (($user['email'] ?? '') !== $profile['email']) {
+            $user['emailVerified'] = false;
+        }
+
+        $user['email'] = $profile['email'];
+        $this->send('PUT', $url, ['auth_bearer' => $admin, 'json' => $user]);
+    }
+
+    public function deleteManagedUser(string $keycloakId): void
+    {
+        $this->send('DELETE', $this->userUrl($keycloakId), ['auth_bearer' => $this->adminToken()]);
     }
 
     public function changePassword(object $token, string $current, string $next): void

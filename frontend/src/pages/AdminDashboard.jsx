@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { formatDate } from '../utils/date';
 import './AdminDashboard.css';
@@ -197,24 +197,34 @@ export default function AdminDashboard() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const loadTasks = useCallback(async () => {
-    setError('');
-
-    try {
-      const response = await axios.get(TASKS_ENDPOINT);
-      setTasks(response.data);
-    } catch (requestError) {
-      setError(
-        getErrorMessage(requestError, 'Nie udało się pobrać wszystkich zadań.'),
-      );
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    document.title = 'Administracja';
   }, []);
 
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    let isCurrent = true;
+
+    const fetchTasks = async () => {
+      try {
+        const response = await axios.get(TASKS_ENDPOINT);
+        if (isCurrent) setTasks(response.data);
+      } catch (requestError) {
+        if (isCurrent) {
+          setError(
+            getErrorMessage(requestError, 'Nie udało się pobrać wszystkich zadań.'),
+          );
+        }
+      } finally {
+        if (isCurrent) setLoading(false);
+      }
+    };
+
+    fetchTasks();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const filteredTasks = useMemo(() => {
     const searchTerm = query.trim().toLocaleLowerCase('pl');

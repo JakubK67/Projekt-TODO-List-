@@ -1,4 +1,3 @@
-/* Przełącznik widoków (Lista / Kalendarz) */
 .view-switch {
   display: flex;
   gap: 12px;
@@ -27,7 +26,6 @@
   cursor: default;
 }
 
-/* Kalendarz */
 .calendar {
   border-radius: 25px;
   background-color: rgb(255, 250, 240);
@@ -113,7 +111,6 @@
   font-weight: bold;
 }
 
-/* Zadania w komórkach – kolory zgodne z priorytetami na liście */
 .calendar .calendar-chip {
   display: block;
   width: 100%;
@@ -140,7 +137,6 @@
   color: gray;
 }
 
-/* Szczegóły dnia i podgląd zadania */
 .calendar-details {
   margin-top: 24px;
   padding-top: 16px;
