@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 final class ApiSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private string $allowedOrigin) {}
+    public function __construct(private string $allowedOrigin, private string $mobileWebOrigins = '') {}
 
     public static function getSubscribedEvents(): array
     {
@@ -26,11 +26,16 @@ final class ApiSubscriber implements EventSubscriberInterface
     public function onResponse(ResponseEvent $event): void
     {
         $headers = $event->getResponse()->headers;
-        if ($event->getRequest()->headers->get('Origin') === $this->allowedOrigin) {
-            $headers->set('Access-Control-Allow-Origin', $this->allowedOrigin);
+        $origin = $event->getRequest()->headers->get('Origin');
+        $headers->set('Access-Control-Allow-Credentials', 'true');
+        if ($origin === $this->allowedOrigin) {
+            $headers->set('Access-Control-Allow-Origin', $origin);
+            $event->getResponse()->setVary('Origin', false);
+        } elseif (is_string($origin) && in_array($origin, array_filter(array_map('trim', explode(',', $this->mobileWebOrigins))), true)) {
+            $headers->set('Access-Control-Allow-Origin', $origin);
+            $headers->remove('Access-Control-Allow-Credentials');
             $event->getResponse()->setVary('Origin', false);
         }
-        $headers->set('Access-Control-Allow-Credentials', 'true');
         $headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
         $headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         $headers->set('Cache-Control', 'no-store');

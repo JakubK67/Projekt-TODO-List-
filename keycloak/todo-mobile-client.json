@@ -1,0 +1,40 @@
+{
+  "clientId": "todo-mobile",
+  "name": "TODO Mobile",
+  "enabled": true,
+  "protocol": "openid-connect",
+  "publicClient": true,
+  "standardFlowEnabled": false,
+  "implicitFlowEnabled": false,
+  "directAccessGrantsEnabled": false,
+  "serviceAccountsEnabled": false,
+  "defaultClientScopes": ["basic", "profile", "email", "roles"],
+  "webOrigins": ["http://localhost:3030", "http://127.0.0.1:3030", "http://192.168.1.9:3030"],
+  "attributes": {
+    "oauth2.device.authorization.grant.enabled": "true"
+  },
+  "protocolMappers": [
+    {
+      "name": "todo-mobile-audience",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-audience-mapper",
+      "consentRequired": false,
+      "config": {
+        "included.client.audience": "todo-mobile",
+        "id.token.claim": "false",
+        "access.token.claim": "true"
+      }
+    },
+    {
+      "name": "todo-mobile-amr",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-amr-mapper",
+      "consentRequired": false,
+      "config": {
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "lightweight.claim": "false"
+      }
+    }
+  ]
+}

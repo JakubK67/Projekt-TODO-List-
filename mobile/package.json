@@ -1,12 +1,16 @@
 {
   "name": "todo-mobile",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
     "@react-navigation/native": "^7.1.0",
     "@react-navigation/native-stack": "^7.3.0",
     "expo": "~58.0.19",
+    "expo-constants": "~58.0.13",
+    "expo-secure-store": "~58.0.2",
     "expo-status-bar": "~58.0.4",
+    "expo-web-browser": "~58.0.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.0",
@@ -16,6 +20,7 @@
   },
   "devDependencies": {
     "@expo/ngrok": "^4.1.0",
+    "@types/node": "^24.19.2",
     "@types/react": "~19.3.0",
     "typescript": "~6.0.3"
   },
@@ -25,7 +30,8 @@
     "ios": "expo start --ios --port 3030",
     "web": "expo start --web --port 3030",
     "typecheck": "tsc --noEmit",
-    "export:check": "expo export --platform android --platform ios"
+    "export:check": "expo export --platform android --platform ios",
+    "test": "node --test tests/*.test.ts"
   },
   "private": true
 }

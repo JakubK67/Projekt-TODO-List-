@@ -9,10 +9,16 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class Keycloak
 {
-    public function __construct(private HttpClientInterface $http, private string $baseUrl, private string $realm, private string $issuer, private string $clientId, private string $adminUsername, private string $adminPassword, private string $mfaAcrValues, private string $frontendOrigin) {}
+    public function __construct(private HttpClientInterface $http, private string $baseUrl, private string $realm, private string $issuer, private string $clientId, private string $adminUsername, private string $adminPassword, private string $mfaAcrValues, private string $frontendOrigin, private string $mobileClientId = 'todo-mobile', private string $mobileIssuer = '') {}
 
     public function authenticate(Request $request): object
     {
+        if ($request->headers->has('Authorization')) {
+            if (!preg_match('/^Bearer ([^\s]+)$/i', $request->headers->get('Authorization', ''), $matches)) {
+                throw new HttpException(401, 'Nieprawidłowy token aplikacji mobilnej.');
+            }
+            return $this->validateMobileToken($matches[1]);
+        }
         $session = $request->getSession();
         $accessToken = $session->get('oidc_access_token');
         if (!is_string($accessToken) || $accessToken === '') {
@@ -47,7 +53,41 @@ class Keycloak
             }
         }
         return $token;
+    }
 
+<<<<<<< HEAD
+=======
+    public function validateMobileToken(string $rawToken): object
+    {
+        if ($this->mobileIssuer === '' || $this->mobileClientId === '' || $this->mobileClientId === $this->clientId) {
+            error_log('Mobile auth rejected: mobile_configuration');
+            throw new HttpException(401, 'Logowanie mobilne nie jest skonfigurowane.');
+        }
+        try {
+            JWT::$leeway = 5;
+            $jwks = $this->send('GET', $this->realmUrl() . '/protocol/openid-connect/certs');
+            $token = JWT::decode($rawToken, JWK::parseKeySet($jwks, 'RS256'));
+        } catch (\Throwable $error) {
+            error_log('Mobile auth rejected: jwt_validation ' . get_class($error));
+            throw new HttpException(401, 'Sesja wygasła. Zaloguj się ponownie.');
+        }
+        $audiences = is_array($token->aud ?? null) ? $token->aud : [$token->aud ?? null];
+        $checks = [
+            'issuer' => ($token->iss ?? '') === $this->mobileIssuer,
+            'client' => ($token->azp ?? '') === $this->mobileClientId,
+            'token_type' => ($token->typ ?? '') === 'Bearer',
+            'subject' => is_string($token->sub ?? null) && $token->sub !== '',
+            'expiry' => is_numeric($token->exp ?? null) && (int) $token->exp > time(),
+            'audience' => in_array($this->mobileClientId, $audiences, true),
+        ];
+        $failed = array_keys(array_filter($checks, static fn(bool $valid) => !$valid));
+        if ($failed !== []) {
+            error_log('Mobile auth rejected: ' . implode(',', $failed));
+            throw new HttpException(401, 'Nieprawidłowy token aplikacji mobilnej.');
+        }
+        if (!$this->hasMfa($token)) throw new HttpException(403, 'Wymagane jest dodatkowe uwierzytelnienie.');
+        return $token;
+>>>>>>> 8df5c45cc541f90d37ebff97a8a7dda3a5a73917
     }
 
     public function validateOidcToken(string $rawToken, bool $requireMfa = false): object
