@@ -14,8 +14,12 @@ export type Task = {
 
 export type TaskInput = Omit<Task, 'id'>;
 
+export type Project = { id: number; name: string; description: string };
+
 export type RootStackParamList = {
   Login: undefined;
   Tasks: undefined;
-  TaskForm: { task?: Task } | undefined;
+  Projects: undefined;
+  ProjectForm: { project?: Project } | undefined;
+  TaskForm: { task?: Task; projectId?: number } | undefined;
 };

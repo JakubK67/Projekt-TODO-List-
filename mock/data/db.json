@@ -1,20 +1,12 @@
 {
   "tasks": [
     {
-      "id": "1",
-      "name": "Prepare the weekly plan",
-      "description": "Plan the most important tasks and set their priorities.",
-      "deadline": "27-10-2026",
-      "priority": "Wysoki",
-      "status": "Do zrobienia"
-    },
-    {
-      "id": "2",
-      "name": "Organize meeting notes",
+      "name": "=",
       "description": "Collect materials and organize notes from the last meeting.",
       "deadline": "28-10-2026",
       "priority": "Normalny",
-      "status": "Realizowane"
+      "status": "Realizowane",
+      "id": "2"
     },
     {
       "id": "3",
@@ -23,14 +15,6 @@
       "deadline": "",
       "priority": "Niski",
       "status": "Wykonane"
-    },
-    {
-      "name": "skibidi",
-      "description": "dfsdfsdf",
-      "deadline": "27-10-2026",
-      "priority": "Normalny",
-      "status": "Do zrobienia",
-      "id": "JbRdJ4HIYUk"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

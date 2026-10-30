@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,7 +9,8 @@ import { createTask, updateTask } from '../data/tasksApi';
 import { colors } from '../theme';
 import { useAuth } from '../auth/AuthContext';
 import { apiDate, displayDate } from '../utils/tasks';
-import { PRIORITIES, STATUSES, type RootStackParamList, type Task, type TaskInput } from '../types';
+import { readProjects } from '../utils/projects';
+import { PRIORITIES, STATUSES, type Project, type RootStackParamList, type Task, type TaskInput } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskForm'>;
 
@@ -22,9 +24,29 @@ export default function TaskFormScreen({ navigation, route }: Props) {
   const [status, setStatus] = useState<Task['status']>(task?.status ?? 'Do zrobienia');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectId, setProjectId] = useState<number | null>(route.params?.projectId ?? task?.project_id ?? null);
+  const [projectsLoading, setProjectsLoading] = useState(!demo);
+  const [projectsError, setProjectsError] = useState('');
+
+  const loadProjects = useCallback(async (signal: AbortSignal) => {
+    if (demo) return;
+    setProjectsLoading(true); setProjectsError('');
+    try {
+      const data = readProjects(await client.api('/api/projects', { signal }));
+      if (!signal.aborted) setProjects(data);
+    } catch { if (!signal.aborted) setProjectsError('Nie udało się wczytać projektów. Spróbuj ponownie.'); }
+    finally { if (!signal.aborted) setProjectsLoading(false); }
+  }, [client, demo]);
+
+  useFocusEffect(useCallback(() => {
+    const controller = new AbortController();
+    void loadProjects(controller.signal);
+    return () => controller.abort();
+  }, [loadProjects]));
 
   async function saveTask() {
-    if (saving) return;
+    if (saving || (!demo && (projectsLoading || projectsError))) return;
     if (!name.trim()) {
       setError('Wpisz nazwę zadania.');
       return;
@@ -38,7 +60,11 @@ export default function TaskFormScreen({ navigation, route }: Props) {
         if (task) await updateTask({ ...taskData, id: task.id });
         else await createTask(taskData);
       } else {
-        const apiTask = { ...taskData, deadline: apiDate(taskData.deadline) };
+        if (projectId !== null && !projects.some(project => project.id === projectId)) {
+          setError('Ten projekt już nie istnieje. Wybierz inny projekt lub Brak.');
+          return;
+        }
+        const apiTask = { ...taskData, deadline: apiDate(taskData.deadline), project_id: projectId };
         await client.api(task ? `/api/tasks/${encodeURIComponent(task.id)}` : '/api/tasks', {
           method: task ? 'PUT' : 'POST',
           body: JSON.stringify(apiTask),
@@ -97,8 +123,26 @@ export default function TaskFormScreen({ navigation, route }: Props) {
                 </Pressable>)}
               </View>
             </View>
+            {!demo ? <View style={styles.field}>
+              <Text style={styles.label}>Projekt</Text>
+              {projectsLoading ? <Text style={styles.hint}>Wczytywanie projektów...</Text> : null}
+              {projectsError ? <View style={styles.field}>
+                <Text accessibilityRole="alert" style={styles.error}>{projectsError}</Text>
+                <AppButton label="Spróbuj ponownie" secondary disabled={projectsLoading}
+                  onPress={() => void loadProjects(new AbortController().signal)} />
+              </View> : null}
+              <View style={styles.options}>
+                {[{ id: null, name: 'Brak' }, ...projects].map(project => <Pressable key={project.id ?? 'none'}
+                  accessibilityRole="radio" accessibilityLabel={`Projekt: ${project.name}`}
+                  accessibilityState={{ checked: projectId === project.id, disabled: saving || projectsLoading }}
+                  disabled={saving || projectsLoading} onPress={() => setProjectId(project.id)}
+                  style={[styles.option, projectId === project.id && styles.selected]}>
+                  <Text style={[styles.optionText, projectId === project.id && styles.selectedText]}>{project.name}</Text>
+                </Pressable>)}
+              </View>
+            </View> : null}
             {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-            <AppButton label={saving ? 'Zapisywanie...' : 'Zapisz zadanie'} disabled={saving} onPress={() => void saveTask()} />
+            <AppButton label={saving ? 'Zapisywanie...' : 'Zapisz zadanie'} disabled={saving || (!demo && (projectsLoading || !!projectsError))} onPress={() => void saveTask()} />
             <AppButton label="Anuluj" secondary onPress={() => navigation.goBack()} />
           </View>
         </ScrollView>

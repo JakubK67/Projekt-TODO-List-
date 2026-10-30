@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AppButton from '../components/AppButton';
+import ListHeading from '../components/ListHeading';
 import DemoNotice from '../components/DemoNotice';
 import { useAuth } from '../auth/AuthContext';
 import { displayDate, readTasks } from '../utils/tasks';
@@ -15,7 +16,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>;
 type Filter = 'Wszystkie' | Task['status'];
 
 export default function TasksScreen({ navigation }: Props) {
-  const { demo, user, client } = useAuth();
+  const { demo, client } = useAuth();
   const [filter, setFilter] = useState<Filter>('Wszystkie');
   const [source, setSource] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,21 +70,16 @@ export default function TasksScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
-      <FlatList data={tasks} keyExtractor={task => String(task.id)} contentContainerStyle={styles.content}
+      <FlatList data={tasks} keyExtractor={task => String(task.id)} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}
         refreshing={loading && source.length > 0} onRefresh={() => { void load(new AbortController().signal); }}
         ListHeaderComponent={
           <View style={styles.heading}>
-            {!demo ? <Text style={styles.welcome}>Witaj, {user?.username}</Text> : null}
             {demo ? <DemoNotice /> : null}
+            <ListHeading title="Lista zadań" count={source.length} loading={loading} active="Tasks" showTabs={!demo}
+              onSelect={section => navigation.replace(section)} addLabel="+ Dodaj zadanie"
+              onAdd={() => navigation.navigate('TaskForm')} />
             {error ? <View style={styles.errorBox}><Text accessibilityRole="alert" style={styles.error}>{error}</Text>
               <AppButton label="Spróbuj ponownie" secondary disabled={loading} onPress={() => { void load(new AbortController().signal); }} /></View> : null}
-            <View style={styles.titleRow}>
-              <View style={styles.titleCopy}>
-                <Text style={styles.title}>Lista zadań</Text>
-              </View>
-              <View style={styles.count}><Text style={styles.countText}>{loading && source.length === 0 ? '…' : source.length}</Text></View>
-            </View>
-            <AppButton label="+ Dodaj zadanie" onPress={() => navigation.navigate('TaskForm')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
               {(['Wszystkie', ...STATUSES] as Filter[]).map(value => (
                 <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: filter === value }}
@@ -118,15 +114,9 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 16, maxWidth: 680, width: '100%', alignSelf: 'center' },
   heading: { gap: 20 },
-  welcome: { color: colors.forest, fontSize: 16, fontWeight: '600' },
   errorBox: { padding: 16, borderRadius: 12, backgroundColor: colors.surface, gap: 12 },
   error: { color: colors.danger, fontSize: 14, lineHeight: 21 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  titleCopy: { flex: 1 },
-  title: { fontSize: 25, fontWeight: '800', color: colors.text },
   subtitle: { color: colors.muted, fontSize: 14, lineHeight: 22, marginTop: 6 },
-  count: { minWidth: 44, minHeight: 44, borderRadius: 14, backgroundColor: colors.soft, alignItems: 'center', justifyContent: 'center', padding: 10 },
-  countText: { color: colors.forest, fontSize: 20, fontWeight: '700' },
   filters: { gap: 8, paddingBottom: 4 },
   filter: { minHeight: 44, borderRadius: 22, paddingHorizontal: 16, justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   selectedFilter: { backgroundColor: colors.forest, borderColor: colors.forest },
