@@ -18,6 +18,8 @@ export type Project = { id: number; name: string; description: string };
 
 export type RootStackParamList = {
   Login: undefined;
+  UserPanel: undefined;
+  Statistics: undefined;
   Tasks: undefined;
   Projects: undefined;
   ProjectForm: { project?: Project } | undefined;
