@@ -19,7 +19,7 @@ final class TodoRepository
     public function login(object $token): array
     {
         $stmt = $this->pdo->prepare("INSERT INTO users (keycloak_id, username, first_name, last_name, email, role)
-            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE last_login = CURRENT_TIMESTAMP");
+            VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE username = VALUES(username), first_name = VALUES(first_name), last_name = VALUES(last_name), email = VALUES(email), role = VALUES(role), last_login = CURRENT_TIMESTAMP");
         $stmt->execute([$token->sub, $token->preferred_username ?? '', $token->given_name ?? null, $token->family_name ?? null, $token->email ?? null, in_array('admin', $token->realm_access->roles ?? [], true) ? 'admin' : 'user']);
         return $this->user($token->sub);
     }
@@ -113,6 +113,71 @@ final class TodoRepository
         $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE id = ?');
         $stmt->execute([$taskId]);
         if ($stmt->rowCount() === 0) throw new NotFoundHttpException('Nie znaleziono zadania');
+    }
+
+    public function adminUsers(): array
+    {
+        $stmt = $this->pdo->query('SELECT keycloak_id, username, first_name, last_name, email, role, created_at, last_login FROM users ORDER BY username ASC');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function adminUpdateUser(string $keycloakId, array $profile): array
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET username = ?, first_name = ?, last_name = ?, email = ? WHERE keycloak_id = ?');
+        $stmt->execute([$profile['username'], $profile['first_name'], $profile['last_name'], $profile['email'], $keycloakId]);
+        return $this->user($keycloakId);
+    }
+
+    public function assertAdminCanDeleteUser(string $keycloakId, string $adminKeycloakId): void
+    {
+        $user = $this->user($keycloakId);
+
+        if ($keycloakId === $adminKeycloakId) {
+            throw new BadRequestHttpException('Nie możesz usunąć własnego konta.');
+        }
+
+        if ($user['role'] === 'admin') {
+            $adminCount = (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+            if ($adminCount <= 1) {
+                throw new BadRequestHttpException('Nie można usunąć ostatniego administratora.');
+            }
+        }
+    }
+
+    public function adminDeleteUser(string $keycloakId, string $adminKeycloakId): array
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare('SELECT id, keycloak_id, role FROM users WHERE keycloak_id = ? FOR UPDATE');
+            $stmt->execute([$keycloakId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) throw new NotFoundHttpException('Nie znaleziono użytkownika.');
+            if ($keycloakId === $adminKeycloakId) throw new BadRequestHttpException('Nie możesz usunąć własnego konta.');
+
+            if ($user['role'] === 'admin') {
+                $adminCount = (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+                if ($adminCount <= 1) throw new BadRequestHttpException('Nie można usunąć ostatniego administratora.');
+            }
+
+            $files = $this->pdo->prepare('SELECT tf.stored_name FROM task_files tf JOIN tasks t ON t.id = tf.task_id WHERE t.user_id = ?');
+            $files->execute([$user['id']]);
+            $storedFiles = $files->fetchAll(PDO::FETCH_COLUMN);
+
+            $deleteTasks = $this->pdo->prepare('DELETE FROM tasks WHERE user_id = ?');
+            $deleteTasks->execute([$user['id']]);
+            $deleteProjects = $this->pdo->prepare('DELETE FROM projects WHERE user_id = ?');
+            $deleteProjects->execute([$keycloakId]);
+            $deleteUser = $this->pdo->prepare('DELETE FROM users WHERE keycloak_id = ?');
+            $deleteUser->execute([$keycloakId]);
+
+            $this->pdo->commit();
+            return ['stored_files' => $storedFiles];
+        } catch (\Throwable $error) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            throw $error;
+        }
     }
 
     public function ownStatistics(string $keycloakId): array

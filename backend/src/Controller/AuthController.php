@@ -16,7 +16,6 @@ final class AuthController
     #[Route('/auth/session', name: 'auth_session', methods: ['POST'])]
     public function establish(Request $request): JsonResponse
     {
-        // Chroni przed login-CSRF; front i API są wystawione pod jednym originem.
         if ($request->headers->get('Origin') !== $this->frontendOrigin) {
             throw new AccessDeniedHttpException('Nie udało się rozpocząć sesji.');
         }

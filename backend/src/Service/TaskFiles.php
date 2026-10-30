@@ -138,6 +138,17 @@ final class TaskFiles
         }
     }
 
+    public function removeStoredFiles(array $storedNames): void
+    {
+        foreach ($storedNames as $storedName) {
+            if (!is_string($storedName) || basename($storedName) !== $storedName) {
+                continue;
+            }
+
+            @unlink($this->storageDir . DIRECTORY_SEPARATOR . $storedName);
+        }
+    }
+
     public function find(int $taskId, int $fileId): array
     {
         $stmt = $this->pdo->prepare(

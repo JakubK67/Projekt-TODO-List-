@@ -55,6 +55,8 @@ class Keycloak
         return $token;
     }
 
+<<<<<<< HEAD
+=======
     public function validateMobileToken(string $rawToken): object
     {
         if ($this->mobileIssuer === '' || $this->mobileClientId === '' || $this->mobileClientId === $this->clientId) {
@@ -85,6 +87,7 @@ class Keycloak
         }
         if (!$this->hasMfa($token)) throw new HttpException(403, 'Wymagane jest dodatkowe uwierzytelnienie.');
         return $token;
+>>>>>>> 8df5c45cc541f90d37ebff97a8a7dda3a5a73917
     }
 
     public function validateOidcToken(string $rawToken, bool $requireMfa = false): object
@@ -129,7 +132,6 @@ class Keycloak
         $identity = $this->validateOidcToken($idToken);
         if (($identity->sub ?? null) !== $token->sub) throw new HttpException(401, 'Nie udało się rozpocząć sesji.');
         $session = $request->getSession();
-        // Rotujemy identyfikator, aby ograniczyć ryzyko session fixation.
         $session->migrate(true);
         $session->set('oidc_access_token', $tokens['access_token']);
         $session->set('oidc_refresh_token', $tokens['refresh_token'] ?? null);
@@ -169,6 +171,29 @@ class Keycloak
         $user['firstName'] = $profile['first_name'];
         $user['lastName'] = $profile['last_name'];
         $this->send('PUT', $url, ['auth_bearer' => $admin, 'json' => $user]);
+    }
+
+    public function updateManagedUser(string $keycloakId, array $profile): void
+    {
+        $admin = $this->adminToken();
+        $url = $this->userUrl($keycloakId);
+        $user = $this->send('GET', $url, ['auth_bearer' => $admin]);
+
+        $user['username'] = $profile['username'];
+        $user['firstName'] = $profile['first_name'];
+        $user['lastName'] = $profile['last_name'];
+
+        if (($user['email'] ?? '') !== $profile['email']) {
+            $user['emailVerified'] = false;
+        }
+
+        $user['email'] = $profile['email'];
+        $this->send('PUT', $url, ['auth_bearer' => $admin, 'json' => $user]);
+    }
+
+    public function deleteManagedUser(string $keycloakId): void
+    {
+        $this->send('DELETE', $this->userUrl($keycloakId), ['auth_bearer' => $this->adminToken()]);
     }
 
     public function changePassword(object $token, string $current, string $next): void
